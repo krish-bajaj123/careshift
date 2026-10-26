@@ -1,0 +1,7 @@
+{
+  "name": "CareShift v0.0",
+  "description": "Functional care assistant foundation for dementia long-term care units, with deterministic care rules, one-tap nurse approvals, resident autonomy choices, and shift handoffs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
