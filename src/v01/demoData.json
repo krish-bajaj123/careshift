@@ -160,6 +160,15 @@
       "title": "Morning hygiene & dressing",
       "due": "08:00",
       "priority": "flexible",
+      "assignee": "s1",
+      "duration_min": 15,
+      "latest": "15:00",
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ],
+      "kind": "hygiene",
       "status": "done",
       "done_by": "s1",
       "done_at": "08:10"
@@ -170,6 +179,15 @@
       "title": "2-hour repositioning",
       "due": "09:00",
       "priority": "essential",
+      "assignee": "s1",
+      "duration_min": 15,
+      "latest": "09:30",
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ],
+      "kind": "reposition",
       "status": "done",
       "done_by": "s1",
       "done_at": "09:05"
@@ -180,6 +198,15 @@
       "title": "Bed & brief change",
       "due": "09:45",
       "priority": "essential",
+      "assignee": "s1",
+      "duration_min": 15,
+      "latest": "10:15",
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ],
+      "kind": "continence",
       "status": "overdue"
     },
     {
@@ -188,11 +215,21 @@
       "title": "Mechanical lift transfer to wheelchair",
       "due": "10:30",
       "priority": "essential",
+      "assignee": "s1",
+      "duration_min": 15,
+      "latest": "11:00",
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ],
+      "kind": "transfer",
       "status": "open",
       "tags": [
         "2-person lift"
       ],
-      "needs_second_staff": true
+      "needs_second_staff": true,
+      "second_assignee": "s2"
     },
     {
       "id": "t5",
@@ -200,6 +237,15 @@
       "title": "Bath, try again after breakfast",
       "due": "10:45",
       "priority": "flexible",
+      "assignee": "s1",
+      "duration_min": 15,
+      "latest": "15:00",
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ],
+      "kind": "bath",
       "status": "open",
       "carried_over": {
         "from_shift": "night-1109",
@@ -213,6 +259,15 @@
       "title": "2-hour repositioning",
       "due": "11:00",
       "priority": "essential",
+      "assignee": "s1",
+      "duration_min": 15,
+      "latest": "11:30",
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ],
+      "kind": "reposition",
       "status": "open"
     },
     {
@@ -224,8 +279,65 @@
       "title": "Lunch assistance & fluid intake",
       "due": "11:45",
       "priority": "essential",
+      "assignee": "s1",
+      "duration_min": 15,
+      "latest": "12:15",
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ],
+      "kind": "meal",
       "status": "open",
       "location": "Dining room"
+    },
+    {
+      "id": "t8",
+      "resident": "r212",
+      "title": "Morning medications",
+      "due": "10:00",
+      "priority": "essential",
+      "assignee": "s3",
+      "duration_min": 10,
+      "latest": "11:00",
+      "allowed_roles": [
+        "RPN",
+        "RN"
+      ],
+      "kind": "med",
+      "status": "open"
+    },
+    {
+      "id": "t9",
+      "resident": "r214",
+      "title": "Morning medications",
+      "due": "10:15",
+      "priority": "essential",
+      "assignee": "s3",
+      "duration_min": 10,
+      "latest": "11:15",
+      "allowed_roles": [
+        "RPN",
+        "RN"
+      ],
+      "kind": "med",
+      "status": "open"
+    },
+    {
+      "id": "t10",
+      "resident": "r208",
+      "title": "Wound check, sacrum",
+      "due": "10:30",
+      "priority": "essential",
+      "assignee": "s3",
+      "duration_min": 15,
+      "latest": "11:30",
+      "allowed_roles": [
+        "RPN",
+        "RN"
+      ],
+      "kind": "wound",
+      "status": "open"
     }
   ],
   "handoff_notes": [
@@ -414,6 +526,11 @@
     {
       "used_for": "refusals get noted and retried later; families want weekly mood/meds/food/sleep/activities summary",
       "source": "Our co-creation feedback (Tara, Alan, Christie & Alex), D4",
+      "url": null
+    },
+    {
+      "used_for": "DEMO VALUES, to confirm with the home: per-task assignee, second_assignee (t4), duration_min, latest (essential = due + 30 min, flexible = shift end), allowed_roles, kind; tasks t8-t10 (RPN medication passes and wound check); 15-min minimum gap before re-approaching a refused task; re-approach by a different nurse after a medication refusal; 2nd medication refusal escalates to the charge nurse and is logged as missed",
+      "source": "CareShift v0.2 demo assumptions, not yet confirmed with Maplewood",
       "url": null
     }
   ]

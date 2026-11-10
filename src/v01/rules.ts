@@ -9,7 +9,7 @@
  */
 
 export type Priority = 'essential' | 'flexible';
-export type Suggestion = 'retry_this_shift' | 'hand_off' | 'flag_nurse';
+export type Suggestion = 'retry_this_shift' | 'hand_off' | 'flag_nurse' | 'escalate_charge_nurse';
 
 export interface RefusalAdvice {
   suggestion: Suggestion;
@@ -41,6 +41,25 @@ export function adviseOnRefusal(priority: Priority, attempts: number, residentNa
     title: '1st refusal.',
     detail: 'Flexible task. Suggested: try again later this shift.',
     handOffWarning: false,
+  };
+}
+
+export const isMedication = (task: { kind?: string }) => task.kind === 'med';
+
+export function adviseOnMedRefusal(attempts: number, windowOpen: boolean, residentName: string): RefusalAdvice {
+  if (attempts >= 2 || !windowOpen) {
+    return {
+      suggestion: 'escalate_charge_nurse',
+      title: attempts >= 2 ? `${ordinal(attempts)} refusal of this medication.` : 'Medication window has closed.',
+      detail: 'Medications are never handed off. Notify the charge nurse and log the dose as missed. One final attempt is planned if it still fits the safe window.',
+      handOffWarning: true,
+    };
+  }
+  return {
+    suggestion: 'retry_this_shift',
+    title: '1st refusal.',
+    detail: `Medications are never handed off. Re-approach ${residentName} before the safe window closes, or ask another nurse to try.`,
+    handOffWarning: true,
   };
 }
 

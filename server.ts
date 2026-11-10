@@ -3,6 +3,8 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
+import { createGeminiModel } from './src/agent/agent';
+import { refusalHandler } from './src/agent/http';
 
 dotenv.config();
 
@@ -207,6 +209,9 @@ Transcript:
       });
     }
   });
+
+  const agentModel = apiKey ? createGeminiModel(apiKey) : undefined;
+  app.post('/api/agent/refusal', refusalHandler(() => agentModel));
 
   // Health check endpoint
   app.get('/api/health', (_req, res) => {
