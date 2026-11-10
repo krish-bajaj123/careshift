@@ -6,6 +6,7 @@ v0.1 follows our co-creation feedback (D4) and the prototyping workshop (D5). It
 - **Family (phone):** weekly recap for one resident (mood, what went well, where she needed support), the day-by-day log, visit booking, and notes to the care team.
 - **No AI in v0.1.** Voice transcripts and summaries are placeholders in `src/v01/aiAdapter.ts`. Kirpa is replacing them with speech-to-text and LLM calls. The contract: fixed fields only, "unknown" when not said, and the nurse reviews before saving.
 - **Demo data:** `src/v01/demoData.json` (all people are made up; sources for the care rules are listed inside the file).
+- **Live prototype (v0.1):** https://claude.ai/artifact/VbFAtmMCb9LXmSbezj2V1T (same flows as this repo, as a single page for peer evaluation).
 - Open `/#family` to start on the family view, or `/#v0` for the old console.
 
 ---
