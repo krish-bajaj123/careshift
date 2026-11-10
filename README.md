@@ -1,4 +1,16 @@
-# CareShift v0.0
+# CareShift v0.1
+
+v0.1 follows our co-creation feedback (D4) and the prototyping workshop (D5). It opens on two new views; the v0.0 console is still there behind the **v0.0 console** button.
+
+- **Care team (tablet):** a PSW's task list sorted by priority, with Done, Resident refused, Hand off and Flag to nurse on each task. Refusals follow deterministic rules in `src/v01/rules.ts`: essential tasks (meds, repositioning, transfers) can't be pushed to the next shift, flexible ones (baths, recreation) can. A 2-person lift needs a second staff member before it's marked done. Also: "From last shift" notes, voice memos with a review step, shift handoff, and residents.
+- **Family (phone):** weekly recap for one resident (mood, what went well, where she needed support), the day-by-day log, visit booking, and notes to the care team.
+- **No AI in v0.1.** Voice transcripts and summaries are placeholders in `src/v01/aiAdapter.ts`. Kirpa is replacing them with speech-to-text and LLM calls. The contract: fixed fields only, "unknown" when not said, and the nurse reviews before saving.
+- **Demo data:** `src/v01/demoData.json` (all people are made up; sources for the care rules are listed inside the file).
+- Open `/#family` to start on the family view, or `/#v0` for the old console.
+
+---
+
+## CareShift v0.0 (previous version)
 
 ### What CareShift v0.0 Does (in 5 lines)
 1. CareShift v0.0 is an assistant for specialized dementia care units, connecting a calm nurse view with a bedside resident tablet.

@@ -12,6 +12,7 @@ import { ResidentPane } from './components/ResidentPane';
 import { HandoffModal } from './components/HandoffModal';
 import { AuditLogDrawer } from './components/AuditLogDrawer';
 import { Stethoscope, Tablet } from 'lucide-react';
+import { V01App } from './v01/V01App';
 
 function CareShiftApp() {
   const [isHandoffOpen, setIsHandoffOpen] = useState(false);
@@ -116,8 +117,18 @@ function CareShiftApp() {
 }
 
 export default function App() {
+  // v0.1 (care team + family portal) is the default. The v0.0 console with the
+  // resident tablet is kept for reference; D4 dropped the resident-facing app.
+  const [legacy, setLegacy] = useState(() => location.hash === '#v0');
+  if (!legacy) return <V01App onLegacy={() => setLegacy(true)} />;
   return (
     <CareShiftProvider>
+      <button
+        onClick={() => setLegacy(false)}
+        className="fixed bottom-3 right-3 z-[60] bg-white text-slate-900 text-xs font-bold px-3 py-2 rounded-full shadow"
+      >
+        ← Back to v0.1
+      </button>
       <CareShiftApp />
     </CareShiftProvider>
   );
