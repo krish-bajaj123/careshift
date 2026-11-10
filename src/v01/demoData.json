@@ -1,0 +1,420 @@
+{
+  "meta": {
+    "dataset": "CareShift synthetic demo data v0.1",
+    "note": "All people are fictional. Numbers follow the cited sources; nothing comes from real residents.",
+    "demo_now": "2026-11-10T10:05:00-05:00",
+    "home": "Maplewood Long-Term Care (fictional)",
+    "unit": "Maple Wing, Floor 2"
+  },
+  "shifts": [
+    {
+      "id": "night-1109",
+      "type": "night",
+      "start": "2026-11-09T23:00",
+      "end": "2026-11-10T07:00"
+    },
+    {
+      "id": "day-1110",
+      "type": "day",
+      "start": "2026-11-10T07:00",
+      "end": "2026-11-10T15:00"
+    },
+    {
+      "id": "eve-1110",
+      "type": "evening",
+      "start": "2026-11-10T15:00",
+      "end": "2026-11-10T23:00"
+    }
+  ],
+  "staff": [
+    {
+      "id": "s1",
+      "name": "Priya Nair",
+      "role": "PSW",
+      "shift": "day-1110",
+      "assigned_rooms": [
+        208,
+        210,
+        212,
+        214
+      ]
+    },
+    {
+      "id": "s2",
+      "name": "Daniel Osei",
+      "role": "PSW",
+      "shift": "day-1110",
+      "assigned_rooms": [
+        216,
+        218,
+        220,
+        222
+      ]
+    },
+    {
+      "id": "s3",
+      "name": "Maria Santos",
+      "role": "RPN",
+      "shift": "day-1110",
+      "assigned_rooms": [
+        208,
+        210,
+        212,
+        214,
+        216,
+        218,
+        220,
+        222
+      ]
+    },
+    {
+      "id": "s4",
+      "name": "Grace Liu",
+      "role": "RN",
+      "shift": "day-1110",
+      "charge_nurse": true
+    },
+    {
+      "id": "s5",
+      "name": "Joanne P.",
+      "role": "RPN",
+      "shift": "night-1109"
+    },
+    {
+      "id": "s6",
+      "name": "Tom Becker",
+      "role": "PSW",
+      "shift": "eve-1110",
+      "assigned_rooms": [
+        208,
+        210,
+        212,
+        214
+      ]
+    }
+  ],
+  "residents": [
+    {
+      "room": 208,
+      "id": "r208",
+      "name": "Lin Chen",
+      "age": 86,
+      "dementia_stage": "moderate",
+      "mobility": "bed-bound",
+      "pressure_injury_risk": "high",
+      "reposition_every_h": 2,
+      "diet": "minced, thickened fluids",
+      "prefers": "tea, Cantonese radio"
+    },
+    {
+      "room": 210,
+      "id": "r210",
+      "name": "Margaret Doyle",
+      "age": 91,
+      "dementia_stage": "mild",
+      "mobility": "walker",
+      "pressure_injury_risk": "low",
+      "diet": "regular",
+      "prefers": "morning hygiene before breakfast"
+    },
+    {
+      "room": 212,
+      "id": "r212",
+      "name": "Emeka Okafor",
+      "age": 82,
+      "dementia_stage": "moderate",
+      "mobility": "wheelchair, mechanical lift",
+      "transfer": "2-person lift",
+      "pressure_injury_risk": "medium",
+      "diet": "diabetic",
+      "prefers": "warm room, bath after breakfast",
+      "bath_days": [
+        "Tue",
+        "Fri"
+      ]
+    },
+    {
+      "room": 214,
+      "id": "r214",
+      "name": "Kamala Rao",
+      "age": 84,
+      "dementia_stage": "moderate",
+      "mobility": "walker with help",
+      "continence": "incontinent, briefs",
+      "diet": "vegetarian",
+      "prefers": "music hour, old Hindi film songs, garden",
+      "family": [
+        {
+          "name": "Anjali Rao",
+          "relation": "daughter",
+          "portal": true,
+          "consent": "SDM-approved"
+        }
+      ]
+    }
+  ],
+  "tasks_today": [
+    {
+      "id": "t1",
+      "resident": "r210",
+      "title": "Morning hygiene & dressing",
+      "due": "08:00",
+      "priority": "flexible",
+      "status": "done",
+      "done_by": "s1",
+      "done_at": "08:10"
+    },
+    {
+      "id": "t2",
+      "resident": "r208",
+      "title": "2-hour repositioning",
+      "due": "09:00",
+      "priority": "essential",
+      "status": "done",
+      "done_by": "s1",
+      "done_at": "09:05"
+    },
+    {
+      "id": "t3",
+      "resident": "r214",
+      "title": "Bed & brief change",
+      "due": "09:45",
+      "priority": "essential",
+      "status": "overdue"
+    },
+    {
+      "id": "t4",
+      "resident": "r212",
+      "title": "Mechanical lift transfer to wheelchair",
+      "due": "10:30",
+      "priority": "essential",
+      "status": "open",
+      "tags": [
+        "2-person lift"
+      ],
+      "needs_second_staff": true
+    },
+    {
+      "id": "t5",
+      "resident": "r212",
+      "title": "Bath, try again after breakfast",
+      "due": "10:45",
+      "priority": "flexible",
+      "status": "open",
+      "carried_over": {
+        "from_shift": "night-1109",
+        "reason": "refused at 6 am, said he was cold",
+        "attempts": 1
+      }
+    },
+    {
+      "id": "t6",
+      "resident": "r208",
+      "title": "2-hour repositioning",
+      "due": "11:00",
+      "priority": "essential",
+      "status": "open"
+    },
+    {
+      "id": "t7",
+      "resident": [
+        "r208",
+        "r210"
+      ],
+      "title": "Lunch assistance & fluid intake",
+      "due": "11:45",
+      "priority": "essential",
+      "status": "open",
+      "location": "Dining room"
+    }
+  ],
+  "handoff_notes": [
+    {
+      "id": "h1",
+      "from": "s5",
+      "written_at": "06:58",
+      "resident": "r212",
+      "text": "Refused bath at 6 am, said he was cold. Added to your list for after breakfast.",
+      "source": "voice memo, reviewed by Joanne P.",
+      "read_by": []
+    },
+    {
+      "id": "h2",
+      "from": "s5",
+      "written_at": "06:58",
+      "resident": "r208",
+      "text": "Drank very little overnight. Please offer fluids often and log at lunch.",
+      "source": "typed",
+      "read_by": []
+    },
+    {
+      "id": "h3",
+      "from": "s5",
+      "written_at": "06:58",
+      "resident": "r214",
+      "text": "Daughter visiting 2 pm (booked in family portal).",
+      "source": "family portal booking",
+      "read_by": []
+    }
+  ],
+  "task1_expected_result": {
+    "task": "t5",
+    "status": "refused",
+    "attempts": 2,
+    "then": "handed_off",
+    "to_shift": "eve-1110",
+    "note_fields": {
+      "task": "bath",
+      "time": "10:45",
+      "status": "refused",
+      "reason": "said he was cold again (from transcript)"
+    },
+    "rule": "flexible task: retry next shift; 2 refusals in 24 h shows on charge nurse view; bath still needed to meet 2/week minimum"
+  },
+  "kamala_week": [
+    {
+      "date": "2026-11-02",
+      "mood": "bright",
+      "sleep": "settled",
+      "meal_intake_pct": {
+        "breakfast": 75,
+        "lunch": 100,
+        "dinner": 75
+      },
+      "fluids": "good",
+      "activities": [
+        "music hour"
+      ],
+      "logged": true
+    },
+    {
+      "date": "2026-11-03",
+      "mood": "okay",
+      "sleep": "restless (woke 3x)",
+      "meal_intake_pct": {
+        "breakfast": 75,
+        "lunch": 100,
+        "dinner": 50
+      },
+      "fluids": "good",
+      "activities": [
+        "garden walk (walker, with help)"
+      ],
+      "logged": true
+    },
+    {
+      "date": "2026-11-04",
+      "mood": "low",
+      "sleep": "restless (woke 4x)",
+      "meal_intake_pct": {
+        "breakfast": 50,
+        "lunch": 75,
+        "dinner": 50
+      },
+      "fluids": "low",
+      "activities": [],
+      "logged": true
+    },
+    {
+      "date": "2026-11-05",
+      "mood": "bright",
+      "sleep": "settled",
+      "meal_intake_pct": {
+        "breakfast": 75,
+        "lunch": 100,
+        "dinner": 75
+      },
+      "fluids": "good",
+      "activities": [
+        "music hour",
+        "garden walk (walker, with help)"
+      ],
+      "logged": true
+    },
+    {
+      "date": "2026-11-06",
+      "mood": "bright",
+      "sleep": "settled",
+      "meal_intake_pct": {
+        "breakfast": 100,
+        "lunch": 100,
+        "dinner": 75
+      },
+      "fluids": "good",
+      "activities": [],
+      "logged": true
+    },
+    {
+      "date": "2026-11-07",
+      "mood": "bright",
+      "sleep": "settled",
+      "meal_intake_pct": {
+        "breakfast": 75,
+        "lunch": 100,
+        "dinner": 75
+      },
+      "fluids": "good",
+      "activities": [
+        "music hour"
+      ],
+      "logged": true
+    },
+    {
+      "date": "2026-11-08",
+      "mood": null,
+      "sleep": null,
+      "meal_intake_pct": null,
+      "fluids": null,
+      "activities": [],
+      "logged": false
+    }
+  ],
+  "kamala_week_actions": [
+    {
+      "issue": "restless sleep Tue/Wed",
+      "action": "quieter room at night, warm drink before bed",
+      "started": "2026-11-04"
+    },
+    {
+      "issue": "low fluids Wed",
+      "action": "offer drinks more often",
+      "resolved": "2026-11-05"
+    }
+  ],
+  "visits": [
+    {
+      "resident": "r214",
+      "family": "Anjali Rao",
+      "when": "2026-11-10T14:00",
+      "place": "Garden room",
+      "booked_via": "family portal"
+    }
+  ],
+  "sources": [
+    {
+      "used_for": "bath twice a week minimum (why a refused bath is re-planned, not dropped)",
+      "source": "Ontario O. Reg. 246/22 (Fixing Long-Term Care Act, 2021), s. 37 Bathing",
+      "url": "https://www.ontario.ca/laws/regulation/220246"
+    },
+    {
+      "used_for": "2-hour repositioning for high-risk residents",
+      "source": "Health Quality Ontario, Pressure Injuries quality standard, Statement 6",
+      "url": "https://hqontario.ca/Evidence-to-Improve-Care/Quality-Standards/View-All-Quality-Standards/Pressure-Injuries/Quality-Statement-6-Repositioning"
+    },
+    {
+      "used_for": "~4 h direct care per resident per day (staffing ratio of 1 PSW : 4 residents on our demo wing is illustrative only)",
+      "source": "Ontario Ministry of Long-Term Care news release, Oct 2025",
+      "url": "https://todaysnorthumberland.ca/2025/10/16/ontario-investing-nearly-2-billion-to-protect-and-expand-long-term-care/"
+    },
+    {
+      "used_for": "most residents have dementia",
+      "source": "OLTCA 2015 (already cited in P3)",
+      "url": "https://directory.oltca.com/oltca/OLTCA/Public/MediaEvents/News_Releases/Expansion_of_Mental_Health_Supports.aspx"
+    },
+    {
+      "used_for": "refusals get noted and retried later; families want weekly mood/meds/food/sleep/activities summary",
+      "source": "Our co-creation feedback (Tara, Alan, Christie & Alex), D4",
+      "url": null
+    }
+  ]
+}
