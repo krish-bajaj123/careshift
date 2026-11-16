@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { RESIDENTS, Task, Note, resLabel } from './data';
-import { adviseOnRefusal, needsSecondStaff } from './rules';
+import { RESIDENTS, STAFF, SHIFT, Task, Note, resLabel, staffShort } from './data';
+import { adviseOnMedRefusal, adviseOnRefusal, isMedication, needsSecondStaff } from './rules';
 import { transcribeAndStructureRefusal, transcribeAndStructureMemo, StructuredNote } from './aiAdapter';
+import { PlanPanel, PlanState, requestPlan } from './PlanPanel';
+import type { PipelineResult } from '../agent/types';
 
-export interface HandItem { res: string[]; title: string; note: string; kind: 'handoff' | 'flag' | 'memo' }
+export interface HandItem { res: string[]; title: string; note: string; kind: 'handoff' | 'flag' | 'memo'; to?: string }
 
 interface Props {
   tasks: Task[]; setTasks: (f: (t: Task[]) => Task[]) => void;
@@ -11,6 +13,7 @@ interface Props {
   hand: HandItem[]; setHand: (f: (h: HandItem[]) => HandItem[]) => void;
   approved: boolean; setApproved: (b: boolean) => void;
   toast: (m: string) => void;
+  staffId: string; onAcceptPlan: (r: PipelineResult) => void;
 }
 
 type Modal =
@@ -27,12 +30,33 @@ export function CareTeamView(p: Props) {
   const [tab, setTab] = useState<'tasks' | 'memo' | 'hand' | 'res'>('tasks');
   const [openId, setOpenId] = useState<string | null>(null);
   const [modal, setModal] = useState<Modal>(null);
+  const [plan, setPlan] = useState<PlanState | null>(null);
   const T = (id: string) => p.tasks.find((t) => t.id === id)!;
   const update = (id: string, patch: Partial<Task>) => p.setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  const me = STAFF[p.staffId];
+  const flagTo = me.role === 'PSW' ? 'Maria S., RPN' : `${staffShort('s4')}, charge nurse`;
 
-  const open = p.tasks.filter((t) => t.status === 'open').sort((a, b) => Number(!!b.overdue) - Number(!!a.overdue));
-  const closed = p.tasks.filter((t) => t.status !== 'open');
+  const mine = p.tasks.filter((t) => t.assignee === p.staffId);
+  const open = mine.filter((t) => t.status === 'open').sort((a, b) => Number(!!b.overdue) - Number(!!a.overdue));
+  const closed = mine.filter((t) => t.status !== 'open');
   const overdue = open.filter((t) => t.overdue).length;
+
+  const askPlan = (t: Task, attempts: number, reason: string | null, note: string) => {
+    setPlan({ id: t.id, status: 'loading' });
+    const tasks = p.tasks.map((x) => (x.id === t.id ? { ...x, attempts } : x));
+    requestPlan(t, attempts, reason, note, tasks)
+      .then((result) => setPlan((cur) => (cur?.id === t.id ? { id: t.id, status: 'ready', result } : cur)))
+      .catch(() => setPlan((cur) => (cur?.id === t.id ? { id: t.id, status: 'error' } : cur)));
+  };
+
+  const acceptPlan = (r: PipelineResult) => {
+    p.onAcceptPlan(r);
+    setPlan(null);
+    if (r.handoff) return setModal({ kind: 'hand', id: r.handoff.taskId });
+    const moved = r.changes.find((c) => c.taskId === r.taskId);
+    setModal(null);
+    p.toast(moved ? `Plan applied · ${T(r.taskId).title} at ${moved.to.time.replace(/^0/, '')} with ${staffShort(moved.to.assignee)}` : 'Plan applied');
+  };
 
   const done = (id: string, who?: string) => {
     update(id, { status: 'done', overdue: false, doneWith: who });
@@ -44,11 +68,11 @@ export function CareTeamView(p: Props) {
     <div id="care">
       <div className="top">
         <div className="hdr">
-          <div><h1>Priya Nair</h1><div className="sub">PSW · Maple Wing, Floor 2 · Day shift 7 am – 3 pm</div></div>
+          <div><h1>{me.name}</h1><div className="sub">{me.role} · {SHIFT.unit} · {SHIFT.label}</div></div>
           <div className="prog">
-            <div className="row"><b>{closed.length} of {p.tasks.length} done</b><span>{overdue ? `${overdue} overdue` : 'Nothing overdue'}</span></div>
-            <div className="bar"><i style={{ width: `${(closed.length / p.tasks.length) * 100}%` }} /></div>
-            <div className="row" style={{ marginTop: 6, fontSize: 13, color: '#555' }}><span>Now 10:05 am</span><span>4 h 55 m left</span></div>
+            <div className="row"><b>{closed.length} of {mine.length} done</b><span>{overdue ? `${overdue} overdue` : 'Nothing overdue'}</span></div>
+            <div className="bar"><i style={{ width: `${mine.length ? (closed.length / mine.length) * 100 : 0}%` }} /></div>
+            <div className="row" style={{ marginTop: 6, fontSize: 13, color: '#555' }}><span>Now {SHIFT.now}</span><span>{SHIFT.left}</span></div>
           </div>
         </div>
         <div className="logo">CareShift<span style={{ fontSize: 36 }}>♡</span></div>
@@ -73,7 +97,7 @@ export function CareTeamView(p: Props) {
                         <div className="acts" onClick={(e) => e.stopPropagation()}>
                           <button className="btn pri" onClick={() => (needsSecondStaff(t) ? setModal({ kind: 'lift', id: t.id }) : done(t.id))}>✓ Done</button>
                           <button className="btn" onClick={() => setModal({ kind: 'refuse', id: t.id })}>Resident refused</button>
-                          <button className="btn" onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>
+                          {!isMedication(t) && <button className="btn" onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>}
                           <button className="btn" onClick={() => setModal({ kind: 'flag', id: t.id })}>⚑ Flag to nurse</button>
                         </div>
                       )}
@@ -90,7 +114,7 @@ export function CareTeamView(p: Props) {
               {p.notes.map((n, i) => (
                 <div key={i} className="note"><b>Rm {RESIDENTS[n.res].room} · {RESIDENTS[n.res].name}</b>{n.text}<div className="src">{n.src}</div></div>
               ))}
-              <button className="btn" onClick={() => { p.setRead(true); p.toast('Notes marked as read'); }}>{p.read ? '✓ Read at 10:05 am' : 'Got it — mark as read'}</button>
+              <button className="btn" onClick={() => { p.setRead(true); p.toast('Notes marked as read'); }}>{p.read ? `✓ Read at ${SHIFT.now}` : 'Got it — mark as read'}</button>
             </div>
           </div>
           <div className="tip"><span style={{ fontSize: 30 }}>🐻</span><div className="bubble">Can't finish something? Tap <b>Hand off</b> — it moves to the next shift's list with your note.</div></div>
@@ -107,7 +131,7 @@ export function CareTeamView(p: Props) {
           {p.hand.map((x, i) => (
             <div key={i} className="note" style={{ background: '#f7f5f0' }}>
               <b>{resLabel(x.res)}{x.title ? ` — ${x.title}` : ''}</b>
-              {x.kind === 'flag' ? `Flagged to Maria S., RPN: ${x.note}` : x.note}
+              {x.kind === 'flag' ? `Flagged to ${x.to ?? 'Maria S., RPN'}: ${x.note}` : x.note}
               <div className="src">{x.kind === 'handoff' ? 'Handed off · due on evening shift' : x.kind === 'memo' ? 'Voice memo, reviewed by you' : 'Flag'}</div>
             </div>
           ))}
@@ -144,33 +168,42 @@ export function CareTeamView(p: Props) {
               </>
             )}
             {modal.kind === 'refuse' && (
-              <RefuseSheet task={T(modal.id)} onCancel={() => setModal(null)} onSave={(note) => {
+              <RefuseSheet task={T(modal.id)} onCancel={() => setModal(null)} onSave={(note, reason, typed) => {
                 const t = T(modal.id); const attempts = (t.attempts ?? 0) + 1;
                 update(t.id, { attempts, lastNote: note, tags: t.tags?.length ? [{ kind: 'g', text: attempts >= 2 ? `Refused ${attempts}× today` : 'Refused 1×' }] : t.tags });
                 setModal({ kind: 'advice', id: t.id });
+                askPlan(t, attempts, reason, typed);
               }} />
             )}
             {modal.kind === 'advice' && (() => {
-              const t = T(modal.id); const a = adviseOnRefusal(t.priority, t.attempts ?? 1, RESIDENTS[t.res[0]].name);
+              const t = T(modal.id); const med = isMedication(t);
+              const a = med ? adviseOnMedRefusal(t.attempts ?? 1, true, RESIDENTS[t.res[0]].name) : adviseOnRefusal(t.priority, t.attempts ?? 1, RESIDENTS[t.res[0]].name);
+              const pl = plan?.id === t.id ? plan : null;
               return (
                 <>
                   <h3>Refusal saved</h3><div className="sm">{t.title} · {resLabel(t.res)}</div>
                   <div className="rule"><b>{a.title}</b> {a.detail}{a.suggestion === 'hand_off' && <><br /><br /><b>Suggested:</b> hand off to evening shift (Tom B., PSW) with your note.</>}</div>
-                  <div className="foot">
-                    <button className="btn ghost" onClick={() => { update(t.id, { due: '12:30' }); setModal(null); p.toast('Kept on your list — moved to 12:30'); }}>Keep on my list</button>
-                    <button className={`btn ${a.suggestion === 'flag_nurse' ? 'pri' : ''}`} onClick={() => setModal({ kind: 'flag', id: t.id })}>⚑ Flag to nurse</button>
-                    <button className={`btn ${a.suggestion === 'hand_off' ? 'pri' : ''}`} onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>
-                  </div>
+                  {pl?.status === 'loading' && <p className="sm">Building a suggested plan for the rest of the shift…</p>}
+                  {pl?.status === 'error' && <p className="sm">Couldn't build a plan, use the options below.</p>}
+                  {pl?.status === 'ready' ? (
+                    <PlanPanel result={pl.result} tasks={p.tasks} onAccept={() => acceptPlan(pl.result)} onDismiss={() => setPlan({ id: t.id, status: 'dismissed' })} />
+                  ) : (
+                    <div className="foot">
+                      <button className="btn ghost" onClick={() => { if (med) { setModal(null); return p.toast('Kept on your list'); } update(t.id, { due: '12:30' }); setModal(null); p.toast('Kept on your list — moved to 12:30'); }}>Keep on my list</button>
+                      <button className={`btn ${a.suggestion === 'flag_nurse' || a.suggestion === 'escalate_charge_nurse' ? 'pri' : ''}`} onClick={() => setModal({ kind: 'flag', id: t.id })}>⚑ Flag to nurse</button>
+                      {!med && <button className={`btn ${a.suggestion === 'hand_off' ? 'pri' : ''}`} onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>}
+                    </div>
+                  )}
                 </>
               );
             })()}
             {(modal.kind === 'hand' || modal.kind === 'flag') && (
-              <SendSheet task={T(modal.id)} kind={modal.kind} onCancel={() => setModal(null)} onSend={(note) => {
+              <SendSheet task={T(modal.id)} kind={modal.kind} flagTo={flagTo} onCancel={() => setModal(null)} onSend={(note) => {
                 const t = T(modal.id);
                 update(t.id, { status: modal.kind === 'hand' ? 'handed' : 'flagged', overdue: false });
-                p.setHand((h) => [...h, { res: t.res, title: short(t), note: note || (modal.kind === 'hand' ? 'No note' : 'Please check'), kind: modal.kind === 'hand' ? 'handoff' : 'flag' }]);
+                p.setHand((h) => [...h, { res: t.res, title: short(t), note: note || (modal.kind === 'hand' ? 'No note' : 'Please check'), kind: modal.kind === 'hand' ? 'handoff' : 'flag', ...(modal.kind === 'flag' ? { to: flagTo } : {}) }]);
                 setOpenId(null); setModal(null);
-                p.toast(modal.kind === 'hand' ? "Moved to evening shift's list with your note" : 'Maria S. has been notified');
+                p.toast(modal.kind === 'hand' ? "Moved to evening shift's list with your note" : `${flagTo.split(',')[0]} has been notified`);
               }} />
             )}
           </div>
@@ -190,7 +223,7 @@ function Fields({ n }: { n: StructuredNote }) {
   );
 }
 
-function RefuseSheet({ task, onCancel, onSave }: { task: Task; onCancel: () => void; onSave: (note: string) => void }) {
+function RefuseSheet({ task, onCancel, onSave }: { task: Task; onCancel: () => void; onSave: (note: string, reason: string | null, typed: string) => void }) {
   const [reason, setReason] = useState<string | null>(null);
   const [rec, setRec] = useState(false);
   const [n, setN] = useState<StructuredNote | null>(null);
@@ -210,12 +243,12 @@ function RefuseSheet({ task, onCancel, onSave }: { task: Task; onCancel: () => v
       <div className="mic"><button className={rec ? 'rec' : ''} onClick={mic}>{rec ? '■' : '🎙'}</button><span className="sm">{rec ? 'Listening… tap to stop' : n ? 'Heard you — check it below' : 'Or tap to say it'}</span></div>
       {n && <Fields n={n} />}
       <textarea rows={2} placeholder="Or type a note" value={text} onChange={(e) => setText(e.target.value)} />
-      <div className="foot"><button className="btn ghost" onClick={onCancel}>Cancel</button><button className="btn pri" onClick={() => onSave(text || reason || 'No reason given')}>Save refusal</button></div>
+      <div className="foot"><button className="btn ghost" onClick={onCancel}>Cancel</button><button className="btn pri" onClick={() => onSave(text || reason || 'No reason given', reason, text)}>Save refusal</button></div>
     </>
   );
 }
 
-function SendSheet({ task, kind, onCancel, onSend }: { task: Task; kind: 'hand' | 'flag'; onCancel: () => void; onSend: (n: string) => void }) {
+function SendSheet({ task, kind, flagTo, onCancel, onSend }: { task: Task; kind: 'hand' | 'flag'; flagTo: string; onCancel: () => void; onSend: (n: string) => void }) {
   const [text, setText] = useState(kind === 'hand' && task.lastNote ? `Refused at 6 am and 10:45 am. ${task.lastNote}` : task.lastNote ?? '');
   return (
     <>
@@ -223,7 +256,7 @@ function SendSheet({ task, kind, onCancel, onSend }: { task: Task; kind: 'hand' 
       {kind === 'hand' && task.priority === 'essential' && (
         <div className="rule" style={{ borderColor: 'var(--red)', background: '#fbeeee' }}><b>Heads up:</b> this is an essential task. Handing off means it waits until 3 pm. Consider flagging the nurse instead.</div>
       )}
-      <p style={{ margin: '14px 0 4px', fontWeight: 600 }}>Goes to: {kind === 'hand' ? 'Evening shift · Tom B., PSW' : 'Maria S., RPN (on shift now)'}</p>
+      <p style={{ margin: '14px 0 4px', fontWeight: 600 }}>Goes to: {kind === 'hand' ? 'Evening shift · Tom B., PSW' : `${flagTo} (on shift now)`}</p>
       <textarea rows={3} value={text} placeholder={kind === 'flag' ? 'What does the nurse need to know?' : ''} onChange={(e) => setText(e.target.value)} />
       <div className="foot"><button className="btn ghost" onClick={onCancel}>Cancel</button><button className="btn pri" onClick={() => onSend(text)}>{kind === 'hand' ? 'Hand off' : 'Send flag'}</button></div>
     </>

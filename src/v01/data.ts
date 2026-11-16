@@ -7,6 +7,7 @@ export interface Task {
   status: 'open' | 'done' | 'handed' | 'flagged';
   overdue?: boolean; tags?: { kind: 'y' | 'g'; text: string }[];
   attempts?: number; place?: string; needsSecondStaff?: boolean; lastNote?: string; doneWith?: string;
+  assignee: string; secondAssignee?: string; kind?: string;
 }
 export interface Note { res: string; text: string; src: string }
 export interface WeekDay { day: string; mood: 'bright' | 'okay' | 'low' | 'none'; sleep: string; meals: string; fluids: string; activities: string }
@@ -22,6 +23,27 @@ export const RESIDENTS: Record<string, Resident> = Object.fromEntries(
 );
 
 export const STAFF = Object.fromEntries(raw.staff.map((s: any) => [s.id, s]));
+
+export const staffShort = (id: string) => {
+  const [first, last] = (STAFF[id]?.name ?? id).split(' ');
+  return last ? `${first} ${last[0]}.` : first;
+};
+
+const toMin = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
+const ampm = (min: number) => {
+  const h = Math.floor(min / 60), m = min % 60;
+  return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''} ${h < 12 ? 'am' : 'pm'}`;
+};
+const nowMin = toMin(raw.meta.demo_now.slice(11, 16));
+const shiftNow = raw.shifts.find((s) => toMin(s.start.slice(11, 16)) <= nowMin && nowMin < toMin(s.end.slice(11, 16)))!;
+const shiftEnd = toMin(shiftNow.end.slice(11, 16));
+
+export const SHIFT = {
+  unit: raw.meta.unit,
+  label: `${cap(shiftNow.type)} shift ${ampm(toMin(shiftNow.start.slice(11, 16)))} – ${ampm(shiftEnd)}`,
+  now: ampm(nowMin),
+  left: `${Math.floor((shiftEnd - nowMin) / 60)} h ${(shiftEnd - nowMin) % 60} m left`,
+};
 
 export function initialTasks(): Task[] {
   return raw.tasks_today.map((t: any) => {
@@ -40,6 +62,9 @@ export function initialTasks(): Task[] {
       attempts: t.carried_over?.attempts ?? 0,
       place: t.location,
       needsSecondStaff: t.needs_second_staff,
+      assignee: t.assignee ?? 's1',
+      secondAssignee: t.second_assignee,
+      kind: t.kind,
     } as Task;
   });
 }
