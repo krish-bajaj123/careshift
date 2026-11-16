@@ -2,6 +2,7 @@ import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { diffPlan, solve } from './solver';
 import { fmtMin, residentName } from './state';
+import { realStaff, scrubDeep, type Vault } from './pseudonym';
 import type { Constraint, PlanOption, RefusalEvent, RulesResult, ShiftState, SolveResult, TraceStep } from './types';
 
 export const ExtraConstraintSchema = z.discriminatedUnion('type', [
@@ -30,6 +31,8 @@ export interface ToolContext {
   trace: TraceStep[];
   options: Map<string, PlanOption>;
   solverCalls: number;
+  /** Identity vault: everything the LLM sees is pseudonymized with it. Absent = no LLM in the loop. */
+  vault?: Vault;
 }
 
 export function toConstraints(extra: ExtraConstraint[], ctx: Pick<ToolContext, 'state' | 'rules'>, source: string): Constraint[] {
@@ -91,11 +94,13 @@ export function rulesSnapshot(rules: RulesResult) {
   };
 }
 
+const forModel = <T,>(ctx: ToolContext, value: T): T => (ctx.vault ? scrubDeep(value, ctx.vault) : value);
+
 export function createTools(ctx: ToolContext) {
   const getShiftState = tool(
     async () => {
       ctx.trace.push({ step: 'tool:get_shift_state', detail: `${ctx.state.tasks.length} open tasks, ${ctx.state.staff.length} staff on shift` });
-      return JSON.stringify(shiftSnapshot(ctx));
+      return JSON.stringify(forModel(ctx, shiftSnapshot(ctx)));
     },
     { name: 'get_shift_state', description: 'Current time, on-shift staff and open tasks for the rest of this shift.', schema: z.object({}) },
   );
@@ -103,7 +108,7 @@ export function createTools(ctx: ToolContext) {
   const getRulesResult = tool(
     async () => {
       ctx.trace.push({ step: 'tool:get_rules_result', detail: ctx.rules.allowedActions.join(', ') });
-      return JSON.stringify(rulesSnapshot(ctx.rules));
+      return JSON.stringify(forModel(ctx, rulesSnapshot(ctx.rules)));
     },
     { name: 'get_rules_result', description: 'What the deterministic care rules allow for this refusal, including whether escalation is required. These rules are final.', schema: z.object({}) },
   );
@@ -111,7 +116,11 @@ export function createTools(ctx: ToolContext) {
   const runSolver = tool(
     async (input: z.infer<typeof RunSolverInputSchema>) => {
       const parsed = z.array(ExtraConstraintSchema).safeParse(
-        input.extraConstraints.map((c) => Object.fromEntries(Object.entries(c).filter(([, v]) => v !== undefined && v !== null))),
+        input.extraConstraints.map((c) => {
+          const clean = Object.fromEntries(Object.entries(c).filter(([, v]) => v !== undefined && v !== null));
+          if (ctx.vault && typeof clean.staffId === 'string') clean.staffId = realStaff(clean.staffId, ctx.vault);
+          return clean;
+        }),
       );
       if (!parsed.success) {
         ctx.trace.push({ step: 'tool:run_solver', detail: 'rejected invalid constraints' });
@@ -125,7 +134,7 @@ export function createTools(ctx: ToolContext) {
         step: 'tool:run_solver',
         detail: `${parsed.data.length} extra constraint(s); ${out.options.length} option(s), best cost ${out.options[0]?.cost.total ?? '-'}, ${out.nodes} nodes`,
       });
-      return JSON.stringify({
+      return JSON.stringify(forModel(ctx, {
         feasible: out.feasible,
         unplaced: out.unplaced,
         options: out.options.map((o) => ({
@@ -134,7 +143,7 @@ export function createTools(ctx: ToolContext) {
           changes: diffPlan(ctx.state, o).map((c) => `${c.taskId} ${c.title} (${c.residentLabel}): ${c.from.time} ${c.from.assignee} -> ${c.to.time} ${c.to.assignee}${c.to.second ? `+${c.to.second}` : ''}`),
           unplaced: o.unplaced,
         })),
-      });
+      }));
     },
     {
       name: 'run_solver',

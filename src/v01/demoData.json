@@ -1,7 +1,7 @@
 {
   "meta": {
     "dataset": "CareShift synthetic demo data v0.1",
-    "note": "All people are fictional. Numbers follow the cited sources; nothing comes from real residents.",
+    "note": "All people are fictional. Numbers follow the cited sources; nothing comes from real residents. task_log is synthetic history used to learn per-resident task durations.",
     "demo_now": "2026-11-10T10:05:00-05:00",
     "home": "Maplewood Long-Term Care (fictional)",
     "unit": "Maple Wing, Floor 2"
@@ -151,6 +151,29 @@
           "consent": "SDM-approved"
         }
       ]
+    },
+    {
+      "room": 216,
+      "id": "r216",
+      "name": "Harold Brooks",
+      "age": 88,
+      "dementia_stage": "mild",
+      "mobility": "walker",
+      "pressure_injury_risk": "medium",
+      "reposition_every_h": 2,
+      "diet": "regular",
+      "prefers": "newspaper with breakfast"
+    },
+    {
+      "room": 218,
+      "id": "r218",
+      "name": "Rosa Martinez",
+      "age": 79,
+      "dementia_stage": "moderate",
+      "mobility": "wheelchair",
+      "pressure_injury_risk": "low",
+      "diet": "soft",
+      "prefers": "music hour, Spanish guitar"
     }
   ],
   "tasks_today": [
@@ -338,6 +361,54 @@
       ],
       "kind": "wound",
       "status": "open"
+    },
+    {
+      "id": "t11",
+      "resident": "r216",
+      "title": "Morning hygiene & dressing",
+      "due": "08:15",
+      "priority": "flexible",
+      "status": "done",
+      "assignee": "s2",
+      "kind": "hygiene",
+      "duration_min": 15,
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ]
+    },
+    {
+      "id": "t12",
+      "resident": "r218",
+      "title": "Escort to music hour",
+      "due": "11:15",
+      "priority": "flexible",
+      "status": "open",
+      "assignee": "s2",
+      "kind": "recreation",
+      "duration_min": 10,
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ]
+    },
+    {
+      "id": "t13",
+      "resident": "r216",
+      "title": "2-hour repositioning",
+      "due": "11:30",
+      "priority": "essential",
+      "status": "open",
+      "assignee": "s2",
+      "kind": "reposition",
+      "duration_min": 15,
+      "allowed_roles": [
+        "PSW",
+        "RPN",
+        "RN"
+      ]
     }
   ],
   "handoff_notes": [
@@ -532,6 +603,729 @@
       "used_for": "DEMO VALUES, to confirm with the home: per-task assignee, second_assignee (t4), duration_min, latest (essential = due + 30 min, flexible = shift end), allowed_roles, kind; tasks t8-t10 (RPN medication passes and wound check); 15-min minimum gap before re-approaching a refused task; re-approach by a different nurse after a medication refusal; 2nd medication refusal escalates to the charge nurse and is logged as missed",
       "source": "CareShift v0.2 demo assumptions, not yet confirmed with Maplewood",
       "url": null
+    }
+  ],
+  "task_log": [
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-10-27",
+      "start": "08:24",
+      "end": "08:37"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-10-27",
+      "start": "08:37",
+      "end": "08:59"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-10-27",
+      "start": "12:58",
+      "end": "13:10"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-10-27",
+      "start": "08:29",
+      "end": "08:46"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-10-27",
+      "start": "08:44",
+      "end": "08:55"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-10-27",
+      "start": "11:42",
+      "end": "11:51"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-10-27",
+      "start": "12:42",
+      "end": "13:04"
+    },
+    {
+      "resident": "r212",
+      "kind": "bath",
+      "date": "2026-10-28",
+      "start": "11:37",
+      "end": "12:17"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-10-28",
+      "start": "09:54",
+      "end": "10:12"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-10-28",
+      "start": "12:58",
+      "end": "13:20"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-10-28",
+      "start": "11:23",
+      "end": "11:37"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-10-28",
+      "start": "08:25",
+      "end": "08:42"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-10-28",
+      "start": "09:08",
+      "end": "09:19"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-10-28",
+      "start": "10:28",
+      "end": "10:38"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-10-28",
+      "start": "12:52",
+      "end": "13:12"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-10-29",
+      "start": "10:37",
+      "end": "10:53"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-10-29",
+      "start": "08:52",
+      "end": "09:06"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-10-29",
+      "start": "12:57",
+      "end": "13:08"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-10-29",
+      "start": "08:49",
+      "end": "09:05"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-10-29",
+      "start": "12:40",
+      "end": "12:49"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-10-29",
+      "start": "09:45",
+      "end": "09:54"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-10-29",
+      "start": "12:14",
+      "end": "12:33"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-10-30",
+      "start": "10:40",
+      "end": "10:53"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-10-30",
+      "start": "11:58",
+      "end": "12:14"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-10-30",
+      "start": "10:33",
+      "end": "10:43"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-10-30",
+      "start": "10:07",
+      "end": "10:23"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-10-30",
+      "start": "10:04",
+      "end": "10:15"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-10-30",
+      "start": "08:41",
+      "end": "08:48"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-10-30",
+      "start": "10:55",
+      "end": "11:15"
+    },
+    {
+      "resident": "r212",
+      "kind": "bath",
+      "date": "2026-10-31",
+      "start": "11:49",
+      "end": "12:24"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-10-31",
+      "start": "09:00",
+      "end": "09:12"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-10-31",
+      "start": "12:22",
+      "end": "12:53"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-10-31",
+      "start": "09:17",
+      "end": "09:26"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-10-31",
+      "start": "12:10",
+      "end": "12:30"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-10-31",
+      "start": "08:39",
+      "end": "08:44"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-10-31",
+      "start": "12:45",
+      "end": "12:57"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-10-31",
+      "start": "10:40",
+      "end": "10:56"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-01",
+      "start": "10:54",
+      "end": "11:05"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-01",
+      "start": "12:56",
+      "end": "13:14"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-01",
+      "start": "11:53",
+      "end": "12:02"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-01",
+      "start": "10:18",
+      "end": "10:37"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-01",
+      "start": "12:02",
+      "end": "12:12"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-01",
+      "start": "10:38",
+      "end": "10:48"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-01",
+      "start": "12:55",
+      "end": "13:18"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-02",
+      "start": "10:25",
+      "end": "10:45"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-02",
+      "start": "11:17",
+      "end": "11:37"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-02",
+      "start": "11:56",
+      "end": "12:09"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-02",
+      "start": "11:01",
+      "end": "11:17"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-02",
+      "start": "08:30",
+      "end": "08:40"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-02",
+      "start": "09:51",
+      "end": "10:02"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-02",
+      "start": "10:06",
+      "end": "10:31"
+    },
+    {
+      "resident": "r212",
+      "kind": "bath",
+      "date": "2026-11-03",
+      "start": "11:23",
+      "end": "11:58"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-03",
+      "start": "08:41",
+      "end": "08:50"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-03",
+      "start": "09:25",
+      "end": "09:50"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-03",
+      "start": "09:10",
+      "end": "09:20"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-03",
+      "start": "11:40",
+      "end": "11:59"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-03",
+      "start": "11:32",
+      "end": "11:43"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-03",
+      "start": "11:03",
+      "end": "11:12"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-03",
+      "start": "09:58",
+      "end": "10:21"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-04",
+      "start": "09:17",
+      "end": "09:28"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-04",
+      "start": "09:59",
+      "end": "10:21"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-04",
+      "start": "08:06",
+      "end": "08:19"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-04",
+      "start": "10:14",
+      "end": "10:28"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-04",
+      "start": "10:24",
+      "end": "10:34"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-04",
+      "start": "11:09",
+      "end": "11:21"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-04",
+      "start": "12:49",
+      "end": "13:14"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-05",
+      "start": "12:23",
+      "end": "12:36"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-05",
+      "start": "08:27",
+      "end": "08:49"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-05",
+      "start": "12:46",
+      "end": "12:54"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-05",
+      "start": "11:20",
+      "end": "11:40"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-05",
+      "start": "12:06",
+      "end": "12:14"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-05",
+      "start": "11:25",
+      "end": "11:36"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-05",
+      "start": "09:46",
+      "end": "10:13"
+    },
+    {
+      "resident": "r212",
+      "kind": "bath",
+      "date": "2026-11-06",
+      "start": "11:45",
+      "end": "12:24"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-06",
+      "start": "08:26",
+      "end": "08:41"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-06",
+      "start": "08:52",
+      "end": "09:15"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-06",
+      "start": "08:51",
+      "end": "09:04"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-06",
+      "start": "11:06",
+      "end": "11:24"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-06",
+      "start": "09:46",
+      "end": "09:55"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-06",
+      "start": "11:12",
+      "end": "11:21"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-06",
+      "start": "10:57",
+      "end": "11:24"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-07",
+      "start": "11:06",
+      "end": "11:22"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-07",
+      "start": "12:09",
+      "end": "12:27"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-07",
+      "start": "11:58",
+      "end": "12:10"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-07",
+      "start": "09:13",
+      "end": "09:28"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-07",
+      "start": "08:52",
+      "end": "09:02"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-07",
+      "start": "12:05",
+      "end": "12:15"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-07",
+      "start": "09:22",
+      "end": "09:39"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-08",
+      "start": "12:30",
+      "end": "12:42"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-08",
+      "start": "11:05",
+      "end": "11:25"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-08",
+      "start": "08:13",
+      "end": "08:27"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-08",
+      "start": "12:30",
+      "end": "12:51"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-08",
+      "start": "08:46",
+      "end": "08:55"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-08",
+      "start": "10:13",
+      "end": "10:26"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-08",
+      "start": "11:02",
+      "end": "11:16"
+    },
+    {
+      "resident": "r212",
+      "kind": "bath",
+      "date": "2026-11-09",
+      "start": "09:54",
+      "end": "10:30"
+    },
+    {
+      "resident": "r212",
+      "kind": "transfer",
+      "date": "2026-11-09",
+      "start": "10:48",
+      "end": "10:57"
+    },
+    {
+      "resident": "r214",
+      "kind": "continence",
+      "date": "2026-11-09",
+      "start": "09:54",
+      "end": "10:13"
+    },
+    {
+      "resident": "r208",
+      "kind": "reposition",
+      "date": "2026-11-09",
+      "start": "09:39",
+      "end": "09:48"
+    },
+    {
+      "resident": "r210",
+      "kind": "hygiene",
+      "date": "2026-11-09",
+      "start": "10:02",
+      "end": "10:17"
+    },
+    {
+      "resident": "r216",
+      "kind": "reposition",
+      "date": "2026-11-09",
+      "start": "09:56",
+      "end": "10:07"
+    },
+    {
+      "resident": "r218",
+      "kind": "recreation",
+      "date": "2026-11-09",
+      "start": "09:42",
+      "end": "09:49"
+    },
+    {
+      "resident": "r208",
+      "kind": "meal",
+      "date": "2026-11-09",
+      "start": "08:14",
+      "end": "08:34"
     }
   ]
 }

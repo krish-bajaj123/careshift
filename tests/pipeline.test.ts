@@ -76,7 +76,7 @@ describe('runRefusalPipeline with a fake LangChain model', () => {
     expect(t8Of(r)?.start).toBe('10:25');
     expect(r.explanation).toBe('Retry at 10:25 once the room is warmer.');
     expect(r.constraintsUsed).toEqual([{ type: 'not_before', taskId: 't8', time: toMin('10:25'), source: 'agent' }]);
-    expect(r.trace.map((t) => t.step)).toEqual(['state', 'rules', 'solver', 'tool:get_rules_result', 'tool:run_solver', 'agent', 'validate', 'result']);
+    expect(r.trace.map((t) => t.step)).toEqual(['state', 'rules', 'solver', 'privacy', 'tool:get_rules_result', 'tool:run_solver', 'agent', 'validate', 'result']);
   });
 
   it('avoid_staff from the note: retry goes to Grace, not Maria', async () => {

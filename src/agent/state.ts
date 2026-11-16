@@ -1,4 +1,5 @@
 import raw from '../v01/demoData.json';
+import { durationFor } from './durations';
 import type { ClientTask, PlanTask, Priority, Role, ShiftState, StaffBlock, StaffMember } from './types';
 
 const ALL_ROLES: Role[] = ['PSW', 'RPN', 'RN'];
@@ -93,7 +94,7 @@ function toPlanTask(t: RawTask, c: ClientTask): PlanTask {
     priority: t.priority,
     due,
     latest: t.latest ? Math.max(toMin(t.latest), due) : t.priority === 'essential' ? due + 30 : -1,
-    durationMin: t.duration_min ?? 15,
+    durationMin: res.length === 1 ? durationFor(res[0], t.kind, t.duration_min).planMin : t.duration_min ?? 15,
     allowedRoles: (t.allowed_roles as Role[] | undefined) ?? ALL_ROLES,
     assignee: c.assignee ?? t.assignee ?? 's1',
     secondAssignee: c.secondAssignee ?? t.second_assignee,
