@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import markImg from './assets/careshift-mark.png';
+import bearImg from './assets/bear.png';
 import { KAMALA_WEEK } from './data';
 
 export interface Visit { when: string; place: string }
@@ -13,14 +15,14 @@ export function FamilyPortal({ visits, setVisits, toast }: { visits: Visit[]; se
 
   return (
     <div id="fam">
-      <div className="fh"><div className="brand">♡ CareShift <span className="pill">Family</span></div><div>Hi, Anjali</div></div>
+      <div className="fh"><div className="brand"><img src={markImg} alt="" style={{ width: 26 }} /> CareShift <span className="pill">Family</span></div><div>Hi, Anjali</div></div>
 
       {tab === 'week' && (
         <div className="fwrap">
           <div className="fcard"><div className="k">Mom's week</div><h2>Kamala Rao</h2>
             <div className="wk"><button onClick={() => toast("Earlier weeks aren't in this demo")}>‹</button>Mon Nov 2 – Sun Nov 8<button style={{ color: '#bbb' }}>›</button></div></div>
           {/* Recap text is pre-written for v0.1; Kirpa's LLM will draft it from the week's logs. */}
-          <div className="sent"><div className="k">The week in a sentence</div>A good week. Mom was social and ate well. Her sleep was a bit restless midweek.</div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', margin: '16px 0' }}><img src={bearImg} alt="" style={{ width: 52, imageRendering: 'pixelated' }} /><div className="sent" style={{ margin: 0, flex: 1 }}><div className="k">The week in a sentence</div>A good week. Mom was social and ate well. Her sleep was a bit restless midweek.</div></div>
           <h3>Mood this week</h3>
           <div className="dots">{KAMALA_WEEK.map((d) => <div key={d.day}><div className={`dot d-${d.mood}`} />{d.day}</div>)}</div>
           <div className="leg"><span>● Bright</span><span style={{ color: '#8a9555' }}>● Okay</span><span>○ Low</span></div>
