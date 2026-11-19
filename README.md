@@ -1,3 +1,16 @@
+# CareShift v0.3 (unit-wide, after peer evaluation)
+
+Built on Kirpa's v0.2 agentic re-plan. Changes from peer-evaluation feedback:
+
+- **Charge nurse board** (View as → Grace Liu): unit-wide plan by staff member, pending approvals, coverage gaps, escalations and an audit trail. Workload is shown for the unit, never ranked per nurse. Open `/#charge` to start there.
+- **Pass to coworker**: any open task can be passed with a note. It arrives as "From X via CareShift: … because …" and the receiver can accept or decline (decline sends it back). Flexible tasks between the same role move automatically; essential tasks and moves across roles wait for the charge nurse. An agent plan that moves work to another person also goes to the charge nurse first.
+- **Learned task durations** (`src/agent/durations.ts`): every resident/task kind gets a typical duration (median) and a planning duration (80th percentile) from `task_log` in the demo data. The solver plans with them and the task list shows "Usually ~N min". Fewer than 3 logs falls back to a default.
+- **Pseudonymous IDs for the AI** (`src/agent/pseudonym.ts`): before any Gemini call, names become random IDs (`R-7f3a`, `S-2c91`), other names after words like "daughter" are blanked, and the agent's reply is mapped back on our server. Tested in `tests/pseudonym.test.ts`.
+
+Still to come: Postgres + event log, an OR-Tools service for unit-wide re-planning, trend flags, and containerized deployment.
+
+---
+
 # CareShift v0.1
 
 v0.1 follows our co-creation feedback (D4) and the prototyping workshop (D5). It opens on two new views; the v0.0 console is still there behind the **v0.0 console** button.

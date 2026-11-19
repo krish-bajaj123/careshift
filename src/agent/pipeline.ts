@@ -1,4 +1,5 @@
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { createVault } from './pseudonym';
 import { runAgent, type AgentDecision } from './agent';
 import { evaluate, targetTask, verifyOption } from './medRules';
 import { diffPlan } from './solver';
@@ -98,7 +99,7 @@ export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState,
   const rules = evaluate(event, state);
   trace.push({ step: 'rules', detail: `${rules.summary} Allowed: ${rules.allowedActions.join(', ')}${rules.mustEscalate ? '. Must escalate.' : ''}` });
 
-  const ctx: ToolContext = { event, state, rules, trace, options: new Map(), solverCalls: 0 };
+  const ctx: ToolContext = { event, state, rules, trace, options: new Map(), solverCalls: 0, ...(model ? { vault: createVault() } : {}) };
   const baseline = runSolverFor(ctx, [], 'base-');
   trace.push({ step: 'solver', detail: `rules-only plan: ${baseline.feasible ? 'feasible' : `infeasible (${baseline.unplaced.map((u) => `${u.taskId}: ${u.reason}`).join('; ')})`}, ${baseline.nodes} nodes` });
 
@@ -109,6 +110,7 @@ export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState,
   let agentNotify: string[] = [];
 
   if (model) {
+    trace.push({ step: 'privacy', detail: 'the AI sees random IDs (R-…, S-…) only; names are swapped back on our server' });
     try {
       const decision = await runAgent(model, ctx, opts.timeoutMs ?? AGENT_TIMEOUT_MS);
       trace.push({ step: 'agent', detail: `picked ${decision.chosenOptionId} using ${decision.constraintsUsed.length} constraint(s)` });

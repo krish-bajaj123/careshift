@@ -1,5 +1,6 @@
 import raw from './demoData.json';
 import type { Priority } from './rules';
+import { durationFor } from '../agent/durations';
 
 export interface Resident { id: string; room: number; name: string; info: string }
 export interface Task {
@@ -8,7 +9,20 @@ export interface Task {
   overdue?: boolean; tags?: { kind: 'y' | 'g'; text: string }[];
   attempts?: number; place?: string; needsSecondStaff?: boolean; lastNote?: string; doneWith?: string;
   assignee: string; secondAssignee?: string; kind?: string;
+  /** Passed by a coworker; waiting for the receiver to accept */
+  incoming?: { from: string; why: string; at: string };
+  /** Waiting for the charge nurse to approve a move */
+  waiting?: string;
+  allowedRoles?: string[];
 }
+
+export interface Approval { id: string; taskId: string; from: string; to: string; why: string; reason: string; kind: 'pass' | 'plan'; plan?: unknown; status: 'pending' | 'approved' | 'denied' }
+export interface AuditRow { at: string; text: string }
+
+/** Learned duration for the task (median of logged times, 80th percentile for planning). */
+export const taskDuration = (t: Pick<Task, 'res' | 'kind'>) => durationFor(t.res.length === 1 ? t.res[0] : undefined, t.kind);
+export const onShiftStaff = () => raw.staff.filter((x: any) => x.shift === shiftNow.id);
+export const isCharge = (id: string) => !!STAFF[id]?.charge_nurse;
 export interface Note { res: string; text: string; src: string }
 export interface WeekDay { day: string; mood: 'bright' | 'okay' | 'low' | 'none'; sleep: string; meals: string; fluids: string; activities: string }
 
@@ -22,7 +36,7 @@ export const RESIDENTS: Record<string, Resident> = Object.fromEntries(
   raw.residents.map((r: any) => [r.id, { id: r.id, room: r.room, name: r.name, info: infoFor(r) }]),
 );
 
-export const STAFF = Object.fromEntries(raw.staff.map((s: any) => [s.id, s]));
+export const STAFF: Record<string, any> = Object.fromEntries(raw.staff.map((s: any) => [s.id, s]));
 
 export const staffShort = (id: string) => {
   const [first, last] = (STAFF[id]?.name ?? id).split(' ');
@@ -37,6 +51,7 @@ const ampm = (min: number) => {
 const nowMin = toMin(raw.meta.demo_now.slice(11, 16));
 const shiftNow = raw.shifts.find((s) => toMin(s.start.slice(11, 16)) <= nowMin && nowMin < toMin(s.end.slice(11, 16)))!;
 const shiftEnd = toMin(shiftNow.end.slice(11, 16));
+export const SHIFT_MIN = { now: nowMin, end: shiftEnd };
 
 export const SHIFT = {
   unit: raw.meta.unit,
@@ -65,6 +80,7 @@ export function initialTasks(): Task[] {
       assignee: t.assignee ?? 's1',
       secondAssignee: t.second_assignee,
       kind: t.kind,
+      allowedRoles: t.allowed_roles ?? ['PSW', 'RPN', 'RN'],
     } as Task;
   });
 }

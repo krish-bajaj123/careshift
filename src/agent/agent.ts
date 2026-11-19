@@ -5,6 +5,7 @@ import { createAgent, toolCallLimitMiddleware } from 'langchain';
 import { z } from 'zod';
 import { createTools, ExtraConstraintSchema, type ToolContext } from './tools';
 import { residentName } from './state';
+import { realStaff, restore, scrub } from './pseudonym';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
 export const MAX_TOOL_CALLS = 4;
@@ -61,12 +62,25 @@ export function parseDecision(text: string): AgentDecision {
 
 export function refusalPrompt(ctx: ToolContext) {
   const t = ctx.state.tasks.find((x) => x.id === ctx.event.taskId)!;
-  return [
+  const text = [
     `Refused task: ${t.id} "${t.title}" for ${t.residents.map(residentName).join(', ')}.`,
     `Refusal number today: ${ctx.rules.attempts}.`,
     `Reason chip: ${ctx.event.reasonChip ?? 'none'}.`,
     `Staff note: ${ctx.event.note?.trim() || 'none'}.`,
   ].join('\n');
+  return ctx.vault ? scrub(text, ctx.vault) : text;
+}
+
+/** Map pseudonymous IDs in the agent's decision back to real staff ids and names. */
+export function restoreDecision(d: AgentDecision, ctx: ToolContext): AgentDecision {
+  const v = ctx.vault;
+  if (!v) return d;
+  return {
+    ...d,
+    constraintsUsed: d.constraintsUsed.map((c) => ('staffId' in c ? { ...c, staffId: realStaff(c.staffId, v) } : c)),
+    notify: d.notify.map((id) => realStaff(id, v)),
+    explanation: restore(d.explanation, v),
+  };
 }
 
 export async function runAgent(model: BaseChatModel, ctx: ToolContext, timeoutMs: number): Promise<AgentDecision> {
@@ -85,7 +99,7 @@ export async function runAgent(model: BaseChatModel, ctx: ToolContext, timeoutMs
       timeout,
     ]);
     const last = out.messages[out.messages.length - 1];
-    return parseDecision(textOf(last));
+    return restoreDecision(parseDecision(textOf(last)), ctx);
   } finally {
     clearTimeout(timer);
   }
