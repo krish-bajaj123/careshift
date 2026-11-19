@@ -19,8 +19,6 @@
 .v01 .bar i{display:block;height:100%;background:var(--olive);border-radius:99px;transition:width .3s}
 .v01 .logo{display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:28px;padding:0 8px}
 .v01 .main{display:grid;grid-template-columns:1.75fr 1fr;gap:18px;margin-top:20px}
-.v01 .main{grid-template-columns:1fr}
-.v01 .logo{display:none}
 .v01 .listwrap{background:var(--sage);border-radius:10px;padding:18px}
 .v01 .list{background:#fff;border-radius:8px;padding:8px 14px}
 .v01 .task{border-bottom:1px solid var(--line);padding:14px 8px;display:flex;gap:14px;align-items:flex-start;border-radius:8px}

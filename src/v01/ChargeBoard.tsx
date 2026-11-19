@@ -1,4 +1,5 @@
 import React from 'react';
+import logoImg from './assets/careshift-logo.png';
 import { Approval, AuditRow, SHIFT, SHIFT_MIN, STAFF, Task, onShiftStaff, resLabel, staffShort, taskDuration } from './data';
 import type { HandItem } from './CareTeamView';
 
@@ -38,7 +39,7 @@ export function ChargeBoard({ tasks, approvals, hand, audit, onDecide }: Props) 
             <div className="row" style={{ marginTop: 6, fontSize: 13, color: '#555' }}><span>Now {SHIFT.now}</span><span>{SHIFT.left}</span></div>
           </div>
         </div>
-        <div className="logo">CareShift<span style={{ fontSize: 36 }}>♡</span></div>
+        <div className="logo"><img src={logoImg} alt="CareShift" style={{ width: 170 }} /></div>
       </div>
 
       <div className="main">

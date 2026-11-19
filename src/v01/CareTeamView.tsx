@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import logoImg from './assets/careshift-logo.png';
+import bearImg from './assets/bear.png';
 import { RESIDENTS, STAFF, SHIFT, Task, Note, resLabel, staffShort, taskDuration, onShiftStaff, isCharge } from './data';
 import { adviseOnMedRefusal, adviseOnRefusal, isMedication, needsSecondStaff } from './rules';
 import { transcribeAndStructureRefusal, transcribeAndStructureMemo, StructuredNote } from './aiAdapter';
@@ -87,7 +89,7 @@ export function CareTeamView(p: Props) {
             <div className="row" style={{ marginTop: 6, fontSize: 13, color: '#555' }}><span>Now {SHIFT.now}</span><span>{SHIFT.left}</span></div>
           </div>
         </div>
-        <div className="logo">CareShift<span style={{ fontSize: 36 }}>♡</span></div>
+        <div className="logo"><img src={logoImg} alt="CareShift" style={{ width: 170 }} /></div>
       </div>
 
       {tab === 'tasks' && (
@@ -143,7 +145,7 @@ export function CareTeamView(p: Props) {
               <button className="btn" onClick={() => { p.setRead(true); p.toast('Notes marked as read'); }}>{p.read ? `✓ Read at ${SHIFT.now}` : 'Got it — mark as read'}</button>
             </div>
           </div>
-          <div className="tip"><span style={{ fontSize: 30 }}>🐻</span><div className="bubble">Can't finish something? Tap <b>Hand off</b> — it moves to the next shift's list with your note.</div></div>
+          <div className="tip"><img src={bearImg} alt="" style={{ width: 64, height: 'auto', imageRendering: 'pixelated' }} /><div className="bubble">Can't finish something? Tap <b>Hand off</b> — it moves to the next shift's list with your note.</div></div>
         </>
       )}
 
