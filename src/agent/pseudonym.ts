@@ -7,7 +7,6 @@
  * After the call we swap IDs back. The mapping (the "identity vault") lives
  * only on our server and never goes to the model.
  */
-import { randomBytes } from 'node:crypto';
 import raw from '../v01/demoData.json';
 
 export interface Vault {
@@ -20,7 +19,7 @@ export interface Vault {
   names: { name: string; id: string }[];
 }
 
-const hex = () => randomBytes(2).toString('hex');
+const hex = () => Array.from(globalThis.crypto.getRandomValues(new Uint8Array(2)), (b) => b.toString(16).padStart(2, '0')).join('');
 
 function freshId(prefix: 'R' | 'S', used: Set<string>) {
   let id = `${prefix}-${hex()}`;

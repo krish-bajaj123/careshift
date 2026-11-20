@@ -1,6 +1,6 @@
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createVault } from './pseudonym';
-import { runAgent, type AgentDecision } from './agent';
+import type { AgentDecision } from './agent';
 import { evaluate, targetTask, verifyOption } from './medRules';
 import { diffPlan } from './solver';
 import { fmtMin, residentName, staffById } from './state';
@@ -112,6 +112,8 @@ export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState,
   if (model) {
     trace.push({ step: 'privacy', detail: 'the AI sees random IDs (R-…, S-…) only; names are swapped back on our server' });
     try {
+      // loaded only when a model is configured, so the rules + solver path also runs in the browser
+      const { runAgent } = await import('./agent');
       const decision = await runAgent(model, ctx, opts.timeoutMs ?? AGENT_TIMEOUT_MS);
       trace.push({ step: 'agent', detail: `picked ${decision.chosenOptionId} using ${decision.constraintsUsed.length} constraint(s)` });
       const v = validateDecision(decision, ctx, baseline);
