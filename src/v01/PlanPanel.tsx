@@ -5,16 +5,22 @@ import { resLabel, STAFF, staffShort, Task } from './data';
 export type PlanState = { id: string; status: 'loading' | 'error' | 'dismissed' } | { id: string; status: 'ready'; result: PipelineResult };
 
 export async function requestPlan(task: Task, attempts: number, reasonChip: string | null, note: string, tasks: Task[]): Promise<PipelineResult> {
-  const res = await fetch('/api/agent/refusal', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      event: { taskId: task.id, reasonChip: reasonChip ?? undefined, note, attempts, at: new Date().toISOString() },
-      tasks: tasks.map((t) => ({ id: t.id, due: t.due, status: t.status, assignee: t.assignee, secondAssignee: t.secondAssignee, attempts: t.attempts ?? 0 })),
-    }),
-  });
-  if (!res.ok) throw new Error(`Plan request failed (${res.status})`);
-  return res.json();
+  const event = { taskId: task.id, reasonChip: reasonChip ?? undefined, note, attempts, at: new Date().toISOString() };
+  const clientTasks = tasks.map((t) => ({ id: t.id, due: t.due, status: t.status, assignee: t.assignee, secondAssignee: t.secondAssignee, attempts: t.attempts ?? 0 }));
+  try {
+    const res = await fetch('/api/agent/refusal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event, tasks: clientTasks }) });
+    if (res.ok && (res.headers.get('content-type') ?? '').includes('json')) return await res.json();
+  } catch {
+    // no server (e.g. the static demo link): fall through to the in-browser planner
+  }
+  return localPlan(event, clientTasks);
+}
+
+/** Same rules + solver as the server, run in the browser with no AI. Used when there is no server. */
+async function localPlan(event: Parameters<typeof import('../agent/pipeline').runRefusalPipeline>[0], clientTasks: import('../agent/types').ClientTask[]): Promise<PipelineResult> {
+  const [{ runRefusalPipeline }, { buildShiftState }] = await Promise.all([import('../agent/pipeline'), import('../agent/state')]);
+  const result = await runRefusalPipeline(event, buildShiftState(clientTasks));
+  return { ...result, trace: result.trace.map((t) => (t.step === 'agent' ? { ...t, detail: 'skipped: static demo has no server or AI key' } : t)) };
 }
 
 const hhmm = (s: string) => s.replace(/^0/, '');
