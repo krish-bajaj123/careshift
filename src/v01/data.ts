@@ -14,9 +14,37 @@ export interface Task {
   /** Waiting for the charge nurse to approve a move */
   waiting?: string;
   allowedRoles?: string[];
+  /** Created from an "I Noticed" slip or form */
+  fromNoticed?: string;
 }
 
-export interface Approval { id: string; taskId: string; from: string; to: string; why: string; reason: string; kind: 'pass' | 'plan'; plan?: unknown; status: 'pending' | 'approved' | 'denied' }
+export interface Approval {
+  id: string; taskId: string; from: string; to: string; why: string; reason: string; kind: 'pass' | 'plan'; plan?: unknown;
+  status: 'pending' | 'approved' | 'denied' | 'stale';
+  /** Task state when the request was made; approving is blocked if it changed since (TC2) */
+  snapshot: string;
+}
+/** What has to stay the same between asking and approving. */
+export const taskVersion = (t: Task) => [t.status, t.assignee, t.due, t.secondAssignee ?? ''].join('|');
+
+/** One hand-off rule for every button and save (TC2): essential tasks and meds never wait for the next shift. */
+export const canHandOff = (t: Pick<Task, 'priority' | 'kind'>) => t.priority !== 'essential' && t.kind !== 'med';
+
+/** "I Noticed" observation from the paper slip (scanned in a batch) or the QR form. */
+export interface Noticed {
+  id: string; res: string; category: string; detail: string; when: string; where: string; see: string;
+  nurseNow: boolean; by: string; source: 'slip' | 'form'; received: string;
+  status: 'new' | 'task' | 'handoff' | 'reviewed'; outcome?: string;
+}
+const toNoticed = (n: any, received?: string): Noticed => ({
+  id: n.id, res: n.resident, category: n.category, detail: n.detail, when: n.when, where: n.where, see: n.see,
+  nurseNow: n.nurse_now, by: n.by, source: n.source, received: received ?? n.received, status: 'new',
+});
+export const initialNoticed = (): Noticed[] => (raw as any).noticed.map((n: any) => toNoticed(n));
+/** Paper slips waiting in the locked box until the reviewer scans them. */
+export const slipsInBox = (received: string): Noticed[] => (raw as any).noticed_box.map((n: any) => toNoticed(n, received));
+export const NOTICE_CATEGORIES = ['Eating / drinking', 'Mood', 'Sleep', 'Mobility', 'Pain / discomfort', 'Other'];
+export const NOTICE_SEE = ['Nurse', 'Dietitian', 'Recreation', 'Not sure'];
 export interface AuditRow { at: string; text: string }
 
 /** Learned duration for the task (median of logged times, 80th percentile for planning). */

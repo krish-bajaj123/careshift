@@ -67,6 +67,8 @@ function describeMove(c: Change) {
   return `${c.title} (${c.residentLabel.split(' ·')[0]}) moves to ${c.to.time}${who}`;
 }
 
+const firstSentence = (s: string) => (s.trim().match(/^[^.!?]*[.!?]?/)?.[0] ?? s).trim();
+
 function fallbackExplanation(ctx: ToolContext, changes: Change[], option: PlanOption, escalation: PipelineResult['escalation']): string {
   const t = targetTask(ctx.event, ctx.state);
   const who = residentName(t.residents[0]);
@@ -108,6 +110,7 @@ export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState,
   let options: PlanOption[] = [];
   let explanation = '';
   let agentNotify: string[] = [];
+  let agentReason = '';
 
   if (model) {
     trace.push({ step: 'privacy', detail: 'the AI sees random IDs (R-…, S-…) only; names are swapped back on our server' });
@@ -125,7 +128,7 @@ export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState,
         chosen = v.option;
         const run = chosen.id.replace(/[a-z]$/, '');
         options = [...ctx.options.values()].filter((o) => o.id.replace(/[a-z]$/, '') === run);
-        explanation = decision.explanation;
+        agentReason = firstSentence(decision.explanation);
         agentNotify = decision.notify;
       }
     } catch (err) {
@@ -156,7 +159,9 @@ export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState,
     escalation = { to, toName: `${name(to)}, ${role}`, reason: reasons.join('; '), logAsMissed: rules.logAsMissed || (rules.isMed && targetMissing) };
   }
 
-  if (source === 'fallback') explanation = fallbackExplanation(ctx, changes, chosen, escalation);
+  // TC2: what moves, when and to whom always comes from the plan itself; the AI only adds the reason.
+  explanation = fallbackExplanation(ctx, changes, chosen, escalation);
+  if (source === 'agent' && agentReason) explanation += ` Why: ${agentReason}`;
 
   const onShift = new Set(state.staff.map((s) => s.id));
   const notify = [...new Set([

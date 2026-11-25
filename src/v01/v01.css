@@ -112,3 +112,17 @@
 .v01 .fnav button.on{background:var(--peach)}
 @media(max-width:860px){.v01 .main{grid-template-columns:1fr}.v01 .logo{display:none}}
 .v01{min-height:100vh}
+
+/* I Noticed form (phone) and inbox */
+.v01 .form-phone{max-width:430px;margin:0 auto}
+.v01 .form-phone .q{display:block;font-weight:600;margin:16px 0 6px}
+.v01 .form-phone select,.v01 .form-phone input,.v01 .form-phone textarea{width:100%;box-sizing:border-box;border:1.5px solid #bbb;border-radius:7px;padding:9px;font:inherit}
+.v01 .noticed{background:#fff;border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:14px;line-height:1.4;border-left:4px solid #c3cf9b}
+.v01 .noticed.now{border-left-color:var(--red);background:#fdf3f3}
+.v01 .noticed.done{opacity:.6}
+.v01 .noticed .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.v01 .noticed .btn{padding:6px 10px;font-size:13px}
+.v01 .noticed select{font:inherit;padding:5px;border-radius:6px}
+.v01 .side .noticed .btn,.v01 .side h3 .btn{width:auto;margin-top:0}
+.v01 .side .noticed select{flex:1 1 100%}
+.v01 .side h3 .btn{white-space:nowrap}

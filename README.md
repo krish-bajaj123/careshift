@@ -184,3 +184,12 @@ Modify any resident values or task timings in `src/logic/syntheticData.ts`. Clic
 1. **Web Speech API Browser Compatibility**: Voice dictation relies on browser Speech Recognition (`webkitSpeechRecognition`), which is natively supported in Chromium browsers and Safari. A typed text input fallback is provided in the Voice Note modal for full functionality on all browsers.
 2. **Audio Autoplay Restrictions**: The audio alert chime for Help calls utilizes the browser Audio API. Modern browsers block autoplay until the user interacts with the page (e.g. clicking any button).
 3. **Session State In-Memory**: CareShift v0.0 operates as an in-memory clinical simulation. Full page reloads reset the simulation back to the `INITIAL_SIMULATED_TIME` baseline unless running within an active single-page session.
+
+## V.1 (final prototype)
+
+Live demo (no install, no AI key): https://claude.ai/artifact/VbFAtmMCb9LXmSbezj2V1T
+
+- **I Noticed, connected to CareShift.** Staff scan a QR code (demo: "I Noticed form (QR)" or `#noticed`) and answer the same six questions as the paper slip. The charge nurse taps "Scan slips from box" to batch-scan the paper slips. Both land in one "I Noticed" list on the charge nurse board, "nurse needed now" first. Each item can become a follow-up task on someone's list, go into the shift handoff, or be marked reviewed (which thanks the sender). Everything is logged in the audit trail.
+- **TC2 changes:** one hand-off rule everywhere (`canHandOff`: essential tasks and meds never wait for the next shift); privacy reminder on voice memos; fuzzy matching for misspelled roster names before anything goes to the AI; out-of-date approvals are blocked (`taskVersion` snapshot); steadier lists (tasks starting in the next 30 min, or belonging to staff the refusal doesn't involve, cost extra to move); explanations state what moves, when and to whom from the plan, and the AI only adds a one-sentence reason.
+- **Agent vs rules test:** 16 scenarios in `eval/scenarios.ts`. `npm run eval` writes `eval/results.csv` (add `GEMINI_API_KEY` to also run the agent path). `tests/scenarios.test.ts` checks every rules-only plan is safe.
+

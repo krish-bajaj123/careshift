@@ -1,6 +1,6 @@
 import React from 'react';
 import logoImg from './assets/careshift-logo.png';
-import { Approval, AuditRow, SHIFT, SHIFT_MIN, STAFF, Task, onShiftStaff, resLabel, staffShort, taskDuration } from './data';
+import { Approval, AuditRow, Noticed, SHIFT, SHIFT_MIN, STAFF, Task, onShiftStaff, resLabel, staffShort, taskDuration } from './data';
 import type { HandItem } from './CareTeamView';
 
 interface Props {
@@ -9,6 +9,12 @@ interface Props {
   hand: HandItem[];
   audit: AuditRow[];
   onDecide: (id: string, ok: boolean) => void;
+  noticed: Noticed[];
+  boxEmpty: boolean;
+  onScan: () => void;
+  onNoticedTask: (id: string, to: string) => void;
+  onNoticedHandoff: (id: string) => void;
+  onNoticedReview: (id: string) => void;
 }
 
 const left = SHIFT_MIN.end - SHIFT_MIN.now;
@@ -17,7 +23,7 @@ const left = SHIFT_MIN.end - SHIFT_MIN.now;
  * Charge nurse board: unit-wide plan, coverage gaps, pending approvals and
  * escalations. Workload is shown per unit and per role on shift, never ranked.
  */
-export function ChargeBoard({ tasks, approvals, hand, audit, onDecide }: Props) {
+export function ChargeBoard({ tasks, approvals, hand, audit, onDecide, noticed, boxEmpty, onScan, onNoticedTask, onNoticedHandoff, onNoticedReview }: Props) {
   const me = STAFF.s4;
   const staff = onShiftStaff().filter((s: any) => !s.charge_nurse);
   const open = tasks.filter((t) => t.status === 'open');
@@ -68,7 +74,7 @@ export function ChargeBoard({ tasks, approvals, hand, audit, onDecide }: Props) 
 
         <div className="side">
           <h2>Needs you</h2>
-          <div className="who">{pending.length} approval{pending.length === 1 ? '' : 's'} · {gaps.length} coverage gap{gaps.length === 1 ? '' : 's'} · {escalations.length} escalation{escalations.length === 1 ? '' : 's'}</div>
+          <div className="who">{noticed.filter((n) => n.status === 'new').length} I Noticed · {pending.length} approval{pending.length === 1 ? '' : 's'} · {gaps.length} coverage gap{gaps.length === 1 ? '' : 's'} · {escalations.length} escalation{escalations.length === 1 ? '' : 's'}</div>
           {pending.map((a) => {
             const t = tasks.find((x) => x.id === a.taskId)!;
             return (
@@ -92,10 +98,64 @@ export function ChargeBoard({ tasks, approvals, hand, audit, onDecide }: Props) 
             <div key={i} className="note"><b>Escalation · {e.title || 'Note'}</b>{resLabel(e.res)}<br />{e.note}</div>
           ))}
           {!pending.length && !gaps.length && !escalations.length && <p className="sm">Nothing needs you right now.</p>}
+          <NoticedInbox items={noticed} staff={staff} boxEmpty={boxEmpty} onScan={onScan} onTask={onNoticedTask} onHandoff={onNoticedHandoff} onReview={onNoticedReview} />
           <h3 style={{ margin: '14px 0 6px' }}>Audit trail</h3>
           {audit.length === 0 && <p className="sm">Every move, approval and decline is logged here.</p>}
           {[...audit].reverse().slice(0, 8).map((r, i) => <div key={i} className="sm" style={{ padding: '3px 0' }}>{r.at} · {r.text}</div>)}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The "I Noticed" list: QR form replies and scanned paper slips land here as one
+ * list. "Nurse needed now" items go first. The reviewer turns each one into a
+ * task, adds it to the handoff, or marks it reviewed (which thanks the sender).
+ */
+function NoticedInbox({ items, staff, boxEmpty, onScan, onTask, onHandoff, onReview }: {
+  items: Noticed[]; staff: any[]; boxEmpty: boolean; onScan: () => void;
+  onTask: (id: string, to: string) => void; onHandoff: (id: string) => void; onReview: (id: string) => void;
+}) {
+  const fresh = items.filter((n) => n.status === 'new').sort((a, b) => Number(b.nurseNow) - Number(a.nurseNow));
+  const handled = items.filter((n) => n.status !== 'new');
+  return (
+    <>
+      <h3 style={{ margin: '14px 0 6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span>I Noticed <span className="sm" style={{ fontWeight: 400 }}>· {fresh.length} new</span></span>
+        <button className="btn" style={{ padding: '5px 10px', fontSize: 13 }} onClick={onScan} disabled={boxEmpty} title="Empty the locked box and scan the paper slips in one batch">
+          {boxEmpty ? 'Box empty ✓' : '📥 Scan slips from box'}
+        </button>
+      </h3>
+      <p className="sm" style={{ margin: '0 0 8px' }}>QR form replies and scanned paper slips, in one list. Check at the mid-shift huddle and before handoff.</p>
+      {fresh.map((n) => <NoticedCard key={n.id} n={n} staff={staff} onTask={onTask} onHandoff={onHandoff} onReview={onReview} />)}
+      {fresh.length === 0 && <p className="sm">All caught up.</p>}
+      {handled.map((n) => (
+        <div key={n.id} className="noticed done"><b>Rm {resLabel([n.res]).split('Rm ')[1]} · {n.category}</b> {n.outcome}</div>
+      ))}
+    </>
+  );
+}
+
+function NoticedCard({ n, staff, onTask, onHandoff, onReview }: { n: Noticed; staff: any[]; onTask: (id: string, to: string) => void; onHandoff: (id: string) => void; onReview: (id: string) => void }) {
+  const nurse = staff.find((s) => s.role !== 'PSW')?.id ?? staff[0]?.id;
+  const [to, setTo] = React.useState<string>(n.see === 'Nurse' || n.nurseNow ? nurse : staff[0]?.id);
+  return (
+    <div className={`noticed ${n.nurseNow ? 'now' : ''}`}>
+      {n.nurseNow && <div style={{ color: 'var(--red)', fontWeight: 700, fontSize: 13 }}>⚑ Nurse needed now · should already be told in person</div>}
+      <b>{resLabel([n.res])} · {n.category}</b>
+      <div>"{n.detail}"</div>
+      <div className="sm" style={{ marginTop: 4 }}>
+        {n.when} · {n.where} · for {n.see.toLowerCase()} · from {n.by}<br />
+        {n.source === 'slip' ? `📄 Paper slip, scanned ${n.received}` : `📱 QR form, ${n.received}`}
+      </div>
+      <div className="acts">
+        <select value={to} onChange={(e) => setTo(e.target.value)} aria-label="Assign follow-up to">
+          {staff.map((s: any) => <option key={s.id} value={s.id}>{staffShort(s.id)} ({s.role})</option>)}
+        </select>
+        <button className="btn pri" onClick={() => onTask(n.id, to)}>Make a task</button>
+        <button className="btn" onClick={() => onHandoff(n.id)}>Add to handoff</button>
+        <button className="btn ghost" onClick={() => onReview(n.id)}>Reviewed ✓</button>
       </div>
     </div>
   );

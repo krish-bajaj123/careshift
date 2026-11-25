@@ -62,6 +62,30 @@ function candidatesFor(t: PlanTask, s: ShiftState, cons: Constraint[], grid0: nu
   return out.sort((a, b) => a.cost - b.cost || byId(a.staff.join(), b.staff.join()) || a.start - b.start);
 }
 
+/** Tasks starting in the next LOCK_MIN minutes don't move during a re-plan. */
+export const LOCK_MIN = 30;
+/** Cost of moving a locked task: well above a normal move, but below dropping a task, so locked tasks only move when nothing else fits. */
+export const LOCK_PENALTY = 50;
+
+/**
+ * Steadier lists (TC2): when re-planning around a refused task, other tasks keep
+ * their time and person if they start within LOCK_MIN minutes or belong to staff
+ * the refusal doesn't involve. Moving one costs LOCK_PENALTY, so it only happens
+ * when there is no other way to fit an essential task.
+ */
+function lockIfSteady(t: PlanTask, cands: Cand[], s: ShiftState, key: PlanTask | undefined, grid0: number): Cand[] {
+  if (!key || t.id === key.id) return cands;
+  const involved = new Set([key.assignee, key.secondAssignee].filter(Boolean));
+  const soon = t.due - s.now < LOCK_MIN;
+  const unaffected = !involved.has(t.assignee) && !(t.secondAssignee && involved.has(t.secondAssignee));
+  if (!soon && !unaffected) return cands;
+  const start0 = Math.max(t.due, grid0);
+  const staff0 = [t.assignee, t.secondAssignee].filter((x): x is string => !!x).sort(byId).join();
+  return cands
+    .map((c) => (c.start === start0 && [...c.staff].sort(byId).join() === staff0 ? c : { ...c, move: c.move + LOCK_PENALTY, cost: c.cost + LOCK_PENALTY }))
+    .sort((a, b) => a.cost - b.cost || byId(a.staff.join(), b.staff.join()) || a.start - b.start);
+}
+
 function unplacedReason(t: PlanTask, s: ShiftState, cons: Constraint[], grid0: number, cands: Cand[]): string {
   const avoid = cons.filter((c) => c.taskId === t.id && c.type === 'avoid_staff').map((c) => (c as { staffId: string }).staffId);
   const roles = s.staff.filter((m) => t.allowedRoles.includes(m.role));
@@ -83,7 +107,8 @@ export function solve(input: SolveInput): SolveResult {
   const excluded = new Set(input.exclude ?? []);
   const tasks = state.tasks.filter((t) => !excluded.has(t.id)).sort((a, b) => a.latest - b.latest || byId(a.id, b.id));
   const n = tasks.length;
-  const cands = tasks.map((t) => candidatesFor(t, state, constraints, grid0));
+  const key = input.keyTaskId ? state.tasks.find((t) => t.id === input.keyTaskId) : undefined;
+  const cands = tasks.map((t) => lockIfSteady(t, candidatesFor(t, state, constraints, grid0), state, key, grid0));
   const dropCost = tasks.map((t) => UNPLACED_PENALTY[t.priority]);
   const keyIdx = input.keyTaskId ? tasks.findIndex((t) => t.id === input.keyTaskId) : -1;
 
