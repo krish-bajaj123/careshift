@@ -20,7 +20,7 @@ describe('POST /api/agent/refusal', () => {
     expect(res.body.source).toBe('fallback');
     expect(Object.keys(res.body).sort()).toEqual(['allowedActions', 'changes', 'chosen', 'constraintsUsed', 'explanation', 'notify', 'options', 'source', 'taskId', 'trace']);
     expect(res.body.chosen).toEqual(expect.objectContaining({ id: expect.any(String), cost: expect.any(Object), assignments: expect.any(Array), changes: expect.any(Array), unplaced: [] }));
-    expect(res.body.changes[0]).toEqual({ taskId: 't8', title: 'Morning medications', residentLabel: 'Rm 212 · Emeka Okafor', from: { time: '10:00', assignee: 's3' }, to: { time: '10:25', assignee: 's3' } });
+    expect(res.body.changes[0]).toEqual({ taskId: 't8', title: 'Morning medications', residentLabel: 'Rm 212 · Emeka Okafor', from: { time: '10:00', assignee: 's3' }, to: { time: '10:45', assignee: 's3' } });
     expect(JSON.stringify(res.body)).not.toMatch(/GEMINI|apiKey/i);
   });
 

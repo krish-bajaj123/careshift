@@ -60,10 +60,42 @@ export function createVault(
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const RELATION = /\b(daughter|son|wife|husband|sister|brother|niece|nephew|friend|grandson|granddaughter|mother|father|mom|dad)\s+([A-Z][a-z]+)/g;
 
-/** Replace roster names with IDs and blank out other detected names. */
+/** Edit distance, used to catch speech-to-text misspellings of roster names. */
+export function editDistance(a: string, b: string): number {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...new Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+/**
+ * Fuzzy match (TC2): a capitalized word that is one letter off a roster name
+ * (two letters for names of 7+ letters) and starts with the same letter is
+ * treated as that name, e.g. "Emika" -> Emeka, "Okafur" -> Okafor. Words under
+ * 5 letters are skipped so ordinary words like "Then" don't match "Chen".
+ */
+function fuzzyId(word: string, v: Vault): string | undefined {
+  if (word.length < 5) return undefined;
+  const w = word.toLowerCase();
+  let best: { id: string; d: number } | undefined;
+  for (const { name, id } of v.names) {
+    for (const part of name.split(' ')) {
+      const p = part.toLowerCase();
+      if (p.length < 5 || p[0] !== w[0] || p === w) continue;
+      const d = editDistance(w, p);
+      if (d <= (p.length >= 7 ? 2 : 1) && (!best || d < best.d)) best = { id, d };
+    }
+  }
+  return best?.id;
+}
+
+/** Replace roster names with IDs, catch close misspellings, and blank out other detected names. */
 export function scrub(text: string, v: Vault): string {
   let out = text;
   for (const { name, id } of v.names) out = out.replace(new RegExp(`\\b${esc(name)}\\b`, 'g'), id);
+  out = out.replace(/\b[A-Z][a-z]{4,}\b/g, (w) => fuzzyId(w, v) ?? w);
   out = out.replace(RELATION, (_m, rel) => `${rel} [name]`);
   return out;
 }

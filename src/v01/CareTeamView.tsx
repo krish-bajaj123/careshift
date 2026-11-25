@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import logoImg from './assets/careshift-logo.png';
 import bearImg from './assets/bear.png';
-import { RESIDENTS, STAFF, SHIFT, Task, Note, resLabel, staffShort, taskDuration, onShiftStaff, isCharge } from './data';
+import { RESIDENTS, STAFF, SHIFT, Task, Note, resLabel, staffShort, taskDuration, onShiftStaff, isCharge, canHandOff } from './data';
 import { adviseOnMedRefusal, adviseOnRefusal, isMedication, needsSecondStaff } from './rules';
 import { transcribeAndStructureRefusal, transcribeAndStructureMemo, StructuredNote } from './aiAdapter';
 import { PlanPanel, PlanState, requestPlan, needsApproval } from './PlanPanel';
@@ -124,7 +124,7 @@ export function CareTeamView(p: Props) {
                         <div className="acts" onClick={(e) => e.stopPropagation()}>
                           <button className="btn pri" onClick={() => (needsSecondStaff(t) ? setModal({ kind: 'lift', id: t.id }) : done(t.id))}>✓ Done</button>
                           <button className="btn" onClick={() => setModal({ kind: 'refuse', id: t.id })}>Resident refused</button>
-                          {!isMedication(t) && <button className="btn" onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>}
+                          {canHandOff(t) && <button className="btn" onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>}
                           {!t.waiting && <button className="btn" onClick={() => setModal({ kind: 'pass', id: t.id })}>⇄ Pass to coworker</button>}
                           <button className="btn" onClick={() => setModal({ kind: 'flag', id: t.id })}>⚑ Flag to nurse</button>
                         </div>
@@ -224,7 +224,7 @@ export function CareTeamView(p: Props) {
                     <div className="foot">
                       <button className="btn ghost" onClick={() => { if (med) { setModal(null); return p.toast('Kept on your list'); } update(t.id, { due: '12:30' }); setModal(null); p.toast('Kept on your list — moved to 12:30'); }}>Keep on my list</button>
                       <button className={`btn ${a.suggestion === 'flag_nurse' || a.suggestion === 'escalate_charge_nurse' ? 'pri' : ''}`} onClick={() => setModal({ kind: 'flag', id: t.id })}>⚑ Flag to nurse</button>
-                      {!med && <button className={`btn ${a.suggestion === 'hand_off' ? 'pri' : ''}`} onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>}
+                      {canHandOff(t) && <button className={`btn ${a.suggestion === 'hand_off' ? 'pri' : ''}`} onClick={() => setModal({ kind: 'hand', id: t.id })}>Hand off</button>}
                     </div>
                   )}
                 </>
@@ -233,6 +233,7 @@ export function CareTeamView(p: Props) {
             {(modal.kind === 'hand' || modal.kind === 'flag') && (
               <SendSheet task={T(modal.id)} kind={modal.kind} flagTo={flagTo} onCancel={() => setModal(null)} onSend={(note) => {
                 const t = T(modal.id);
+                if (modal.kind === 'hand' && !canHandOff(t)) { setModal(null); return p.toast("Essential tasks can't wait for the next shift. Flag the nurse instead."); }
                 update(t.id, { status: modal.kind === 'hand' ? 'handed' : 'flagged', overdue: false });
                 p.setHand((h) => [...h, { res: t.res, title: short(t), note: note || (modal.kind === 'hand' ? 'No note' : 'Please check'), kind: modal.kind === 'hand' ? 'handoff' : 'flag', ...(modal.kind === 'flag' ? { to: flagTo } : {}) }]);
                 setOpenId(null); setModal(null);
@@ -286,8 +287,8 @@ function SendSheet({ task, kind, flagTo, onCancel, onSend }: { task: Task; kind:
   return (
     <>
       <h3>{kind === 'hand' ? 'Hand off to next shift' : 'Flag to nurse'}</h3><div className="sm">{task.title} · {resLabel(task.res)}</div>
-      {kind === 'hand' && task.priority === 'essential' && (
-        <div className="rule" style={{ borderColor: 'var(--red)', background: '#fbeeee' }}><b>Heads up:</b> this is an essential task. Handing off means it waits until 3 pm. Consider flagging the nurse instead.</div>
+      {kind === 'hand' && !canHandOff(task) && (
+        <div className="rule" style={{ borderColor: 'var(--red)', background: '#fbeeee' }}><b>Can't hand off:</b> essential tasks and medications can't wait for the next shift. Flag the nurse instead.</div>
       )}
       <p style={{ margin: '14px 0 4px', fontWeight: 600 }}>Goes to: {kind === 'hand' ? 'Evening shift · Tom B., PSW' : `${flagTo} (on shift now)`}</p>
       <textarea rows={3} value={text} placeholder={kind === 'flag' ? 'What does the nurse need to know?' : ''} onChange={(e) => setText(e.target.value)} />
@@ -337,6 +338,7 @@ function MemoTab({ onSave }: { onSave: (res: string, text: string) => void }) {
     <div className="page">
       <h2>Voice memo</h2>
       <p className="sm">Record a note about any resident. You review it before it's saved.</p>
+      <div className="rule" style={{ fontSize: 13 }}>🔒 Pick the resident above instead of saying their full name, and don't say birthdays, health card numbers or family members' names. CareShift swaps names for random IDs before anything goes to the AI.</div>
       <select value={res} onChange={(e) => setRes(e.target.value)}>
         {Object.values(RESIDENTS).map((r) => <option key={r.id} value={r.id}>Rm {r.room} · {r.name}</option>)}
       </select>

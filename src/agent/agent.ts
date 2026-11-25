@@ -21,7 +21,7 @@ Steps:
    Call get_shift_state if you need staff ids, roles or times. Do not add a constraint the note does not support.
 3. Call run_solver with those constraints. Call it a second time only if the first result has no usable option.
 4. Choose exactly one option id that run_solver returned. Prefer the lowest cost unless the note gives a clear reason to pick another.
-5. Write an explanation of 2 to 3 plain sentences for the care team: what changes, when, by whom, and why. Give no medical advice and no dosages, and do not invent facts.
+5. Write the explanation as ONE plain sentence giving only the reason for your choice (for example what the note said). The app writes what moves, when and to whom from the plan, so do not restate times or staff. Give no medical advice and no dosages, and do not invent facts.
 6. List the staff ids to notify: anyone whose tasks change, plus the charge nurse whenever the rules say to escalate.
 
 You may make at most ${MAX_TOOL_CALLS} tool calls. Your final reply must be only a JSON object, with no code fence and no other text:

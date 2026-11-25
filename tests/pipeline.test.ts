@@ -67,14 +67,15 @@ describe('runRefusalPipeline with a fake LangChain model', () => {
   it('uses the agent when it picks a valid option', async () => {
     const model = scriptedAgent({
       extra: [{ type: 'not_before', minutesFromNow: 20 }],
-      decision: (p) => ({ chosenOptionId: `${p}a`, constraintsUsed: [{ type: 'not_before', minutesFromNow: 20 }], explanation: 'Retry at 10:25 once the room is warmer.', notify: ['s3'] }),
+      decision: (p) => ({ chosenOptionId: `${p}a`, constraintsUsed: [{ type: 'not_before', minutesFromNow: 20 }], explanation: 'He said the room was cold. Retry later.', notify: ['s3'] }),
     });
     const s = state();
     const r = await runRefusalPipeline(COLD, s, model);
     expect(r.source).toBe('agent');
     expect(r.chosen.id).toBe('opt-1a');
-    expect(t8Of(r)?.start).toBe('10:25');
-    expect(r.explanation).toBe('Retry at 10:25 once the room is warmer.');
+    expect(t8Of(r)?.start).toBe('10:45'); // Maria's 10:30 task is locked (starts within 30 min), so the retry goes after it
+    expect(r.explanation).toMatch(/at 10:45 by Maria/); // facts come from the plan
+    expect(r.explanation).toMatch(/Why: He said the room was cold\.$/); // the AI only adds one reason sentence
     expect(r.constraintsUsed).toEqual([{ type: 'not_before', taskId: 't8', time: toMin('10:25'), source: 'agent' }]);
     expect(r.trace.map((t) => t.step)).toEqual(['state', 'rules', 'solver', 'privacy', 'tool:get_rules_result', 'tool:run_solver', 'agent', 'validate', 'result']);
   });

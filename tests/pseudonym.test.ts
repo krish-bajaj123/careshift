@@ -29,6 +29,14 @@ describe('pseudonymous IDs for the LLM', () => {
     expect(out).not.toContain('Chioma');
   });
 
+  it('catches speech-to-text misspellings of roster names', () => {
+    const v = createVault();
+    const out = scrub('Emika refused, Mr Okafur said Danial can help. Then she slept.', v);
+    expect(out).not.toMatch(/Emika|Okafur|Danial/);
+    expect(restore(out, v)).toBe('Emeka Okafor refused, Mr Emeka Okafor said Daniel Osei can help. Then she slept.');
+    expect(scrub('Then he sat by the Water garden.', v)).toBe('Then he sat by the Water garden.');
+  });
+
   it('restores ids back to real names', () => {
     const v = createVault();
     const text = 'Kamala Rao prefers Tom Becker for baths.';
