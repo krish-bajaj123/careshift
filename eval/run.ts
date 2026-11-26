@@ -30,7 +30,7 @@ export function stateFor(sc: Scenario) {
 
 async function main() {
   const key = process.env.GEMINI_API_KEY;
-  const model = key ? (await import('../src/agent/agent')).createGeminiModel(key) : undefined;
+  const model = key ? (await import('../src/agent/agent')).createGeminiModels(key) : undefined;
   const rows = ['scenario,about,note_matters,path,source,missed_essential,late_min,tasks_moved,others_moved,escalated,explanation'];
   for (const sc of SCENARIOS) {
     for (const path of model ? ['rules', 'agent'] : ['rules']) {

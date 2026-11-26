@@ -7,7 +7,8 @@ import { fmtMin, residentName, staffById } from './state';
 import { runSolverFor, toConstraints, type ExtraConstraint, type ToolContext } from './tools';
 import type { Change, Constraint, OptionSummary, PipelineResult, PlanOption, RefusalEvent, RulesResult, ShiftState, SolveResult, TraceStep } from './types';
 
-export const AGENT_TIMEOUT_MS = 40_000;
+/** Per model. With the default two models the worst case is about 30 s before the rules-only plan. */
+export const AGENT_TIMEOUT_MS = 15_000;
 
 export const CHIP_TABLE: Record<string, { minutes: number; differentStaff?: boolean }> = {
   'Said they were cold': { minutes: 20 },
@@ -94,14 +95,16 @@ function fallbackExplanation(ctx: ToolContext, changes: Change[], option: PlanOp
   return parts.join(' ');
 }
 
-export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState, model?: BaseChatModel, opts: PipelineOptions = {}): Promise<PipelineResult> {
+export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState, model?: BaseChatModel | BaseChatModel[], opts: PipelineOptions = {}): Promise<PipelineResult> {
+  // Several models = try each in turn (the free Gemini tier often returns 503 "high demand" for one model).
+  const models = Array.isArray(model) ? model : model ? [model] : [];
   const trace: TraceStep[] = [];
   trace.push({ step: 'state', detail: `now ${fmtMin(state.now)}, ${state.staff.length} staff on ${state.shiftId}, ${state.tasks.length} open tasks` });
 
   const rules = evaluate(event, state);
   trace.push({ step: 'rules', detail: `${rules.summary} Allowed: ${rules.allowedActions.join(', ')}${rules.mustEscalate ? '. Must escalate.' : ''}` });
 
-  const ctx: ToolContext = { event, state, rules, trace, options: new Map(), solverCalls: 0, ...(model ? { vault: createVault() } : {}) };
+  const ctx: ToolContext = { event, state, rules, trace, options: new Map(), solverCalls: 0, ...(models.length ? { vault: createVault() } : {}) };
   const baseline = runSolverFor(ctx, [], 'base-');
   trace.push({ step: 'solver', detail: `rules-only plan: ${baseline.feasible ? 'feasible' : `infeasible (${baseline.unplaced.map((u) => `${u.taskId}: ${u.reason}`).join('; ')})`}, ${baseline.nodes} nodes` });
 
@@ -112,27 +115,31 @@ export async function runRefusalPipeline(event: RefusalEvent, state: ShiftState,
   let agentNotify: string[] = [];
   let agentReason = '';
 
-  if (model) {
+  if (models.length) {
     trace.push({ step: 'privacy', detail: 'the AI sees random IDs (R-…, S-…) only; names are swapped back on our server' });
-    try {
-      // loaded only when a model is configured, so the rules + solver path also runs in the browser
-      const { runAgent } = await import('./agent');
-      const decision = await runAgent(model, ctx, opts.timeoutMs ?? AGENT_TIMEOUT_MS);
-      trace.push({ step: 'agent', detail: `picked ${decision.chosenOptionId} using ${decision.constraintsUsed.length} constraint(s)` });
-      const v = validateDecision(decision, ctx, baseline);
-      if ('error' in v) {
-        trace.push({ step: 'validate', detail: `rejected: ${v.error}` });
-      } else {
-        trace.push({ step: 'validate', detail: `${v.option.id} passes the rules again` });
-        source = 'agent';
-        chosen = v.option;
-        const run = chosen.id.replace(/[a-z]$/, '');
-        options = [...ctx.options.values()].filter((o) => o.id.replace(/[a-z]$/, '') === run);
-        agentReason = firstSentence(decision.explanation);
-        agentNotify = decision.notify;
+    // loaded only when a model is configured, so the rules + solver path also runs in the browser
+    const { runAgent } = await import('./agent');
+    for (const m of models) {
+      const label = (m as unknown as { model?: string }).model ?? 'model';
+      try {
+        const decision = await runAgent(m, ctx, opts.timeoutMs ?? AGENT_TIMEOUT_MS);
+        trace.push({ step: 'agent', detail: `${label} picked ${decision.chosenOptionId} using ${decision.constraintsUsed.length} constraint(s)` });
+        const v = validateDecision(decision, ctx, baseline);
+        if ('error' in v) {
+          trace.push({ step: 'validate', detail: `rejected: ${v.error}` });
+        } else {
+          trace.push({ step: 'validate', detail: `${v.option.id} passes the rules again` });
+          source = 'agent';
+          chosen = v.option;
+          const run = chosen.id.replace(/[a-z]$/, '');
+          options = [...ctx.options.values()].filter((o) => o.id.replace(/[a-z]$/, '') === run);
+          agentReason = firstSentence(decision.explanation);
+          agentNotify = decision.notify;
+        }
+        break;
+      } catch (err) {
+        trace.push({ step: 'agent', detail: `${label} failed: ${err instanceof Error ? err.message : String(err)}` });
       }
-    } catch (err) {
-      trace.push({ step: 'agent', detail: `failed: ${err instanceof Error ? err.message : String(err)}` });
     }
   } else {
     trace.push({ step: 'agent', detail: 'skipped: no model configured' });
