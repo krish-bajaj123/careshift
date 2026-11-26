@@ -3,7 +3,7 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
-import { createGeminiModel } from './src/agent/agent';
+import { createGeminiModel, DEFAULT_GEMINI_MODEL } from './src/agent/agent';
 import { refusalHandler } from './src/agent/http';
 
 dotenv.config();
@@ -58,7 +58,7 @@ ${JSON.stringify(snapshot, null, 2)}`;
       );
 
       const generatePromise = ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL,
         contents: prompt,
       });
 
@@ -145,7 +145,7 @@ Transcript:
       );
 
       const generatePromise = ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL,
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
