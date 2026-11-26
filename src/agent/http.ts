@@ -28,7 +28,7 @@ export const RefusalRequestSchema = z.object({
     .min(1),
 });
 
-export function refusalHandler(getModel: () => BaseChatModel | undefined, opts: PipelineOptions = {}) {
+export function refusalHandler(getModel: () => BaseChatModel | BaseChatModel[] | undefined, opts: PipelineOptions = {}) {
   return async (req: Request, res: Response) => {
     const parsed = RefusalRequestSchema.safeParse(req.body);
     if (!parsed.success) {

@@ -137,3 +137,13 @@ describe('runRefusalPipeline with a fake LangChain model', () => {
     expect(r.trace.find((t) => t.step === 'agent')?.detail).toMatch(/timed out/);
   });
 });
+
+describe('model fallback chain', () => {
+  it('tries the next model when the first one errors (e.g. Gemini 503)', async () => {
+    const broken = fakeModel().respond(new Error('503 high demand'));
+    const good = scriptedAgent({ extra: [{ type: 'not_before', minutesFromNow: 20 }], decision: (p) => ({ chosenOptionId: `${p}a`, constraintsUsed: [{ type: 'not_before', minutesFromNow: 20 }], explanation: 'Room was cold.', notify: [] }) });
+    const r = await runRefusalPipeline(COLD, state({ t8: { attempts: 1 } }), [broken, good] as never);
+    expect(r.source).toBe('agent');
+    expect(r.trace.filter((s) => s.step === 'agent').map((s) => s.detail)).toEqual([expect.stringMatching(/failed: 503/), expect.stringMatching(/picked/)]);
+  });
+});

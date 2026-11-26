@@ -37,7 +37,16 @@ export const AgentDecisionSchema = z.object({
 export type AgentDecision = z.infer<typeof AgentDecisionSchema>;
 
 export function createGeminiModel(apiKey: string, model = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL): BaseChatModel {
-  return new ChatGoogleGenerativeAI({ model, apiKey, temperature: 0, maxRetries: 3 }); // Gemini free tier often returns 503 "high demand" for a moment; retry before falling back
+  return new ChatGoogleGenerativeAI({ model, apiKey, temperature: 0, maxRetries: 1 });
+}
+
+/**
+ * Models to try in order. GEMINI_MODEL can be one name or a comma-separated list.
+ * The default pairs two Flash-Lite models so one being overloaded doesn't drop us to rules-only.
+ */
+export function createGeminiModels(apiKey: string, names = process.env.GEMINI_MODEL): BaseChatModel[] {
+  const list = (names ?? `${DEFAULT_GEMINI_MODEL},gemini-3.5-flash-lite`).split(',').map((n) => n.trim()).filter(Boolean);
+  return list.map((n) => createGeminiModel(apiKey, n));
 }
 
 export function buildAgent(model: BaseChatModel, ctx: ToolContext) {
