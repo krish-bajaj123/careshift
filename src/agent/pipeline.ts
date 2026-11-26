@@ -7,7 +7,7 @@ import { fmtMin, residentName, staffById } from './state';
 import { runSolverFor, toConstraints, type ExtraConstraint, type ToolContext } from './tools';
 import type { Change, Constraint, OptionSummary, PipelineResult, PlanOption, RefusalEvent, RulesResult, ShiftState, SolveResult, TraceStep } from './types';
 
-export const AGENT_TIMEOUT_MS = 20_000;
+export const AGENT_TIMEOUT_MS = 40_000;
 
 export const CHIP_TABLE: Record<string, { minutes: number; differentStaff?: boolean }> = {
   'Said they were cold': { minutes: 20 },
