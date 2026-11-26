@@ -58,7 +58,7 @@ npm start
 ```
 
 #### Environment Variables
-- `GEMINI_API_KEY`: Google Gemini API key used by the backend in `server.ts` for AI-assisted voice note structuring (`gemini-3.8-flash`) and shift handoff narrative generation. If omitted, the server automatically uses the built-in deterministic clinical extraction fallbacks.
+- `GEMINI_API_KEY`: Google Gemini API key used by the backend in `server.ts` for AI-assisted voice note structuring (`gemini-3.1-flash-lite` by default, or `GEMINI_MODEL`) and shift handoff narrative generation. If omitted, the server automatically uses the built-in deterministic clinical extraction fallbacks.
 
 ---
 
@@ -138,7 +138,7 @@ The rules engine lives in **`src/logic/rulesEngine.ts`**. It handles all clinica
 
 ### Where Gemini is Called & What Data is Sent
 
-Gemini is called exclusively through server-side proxy routes in **`server.ts`** using `@google/genai` (`gemini-3.8-flash`):
+Gemini is called exclusively through server-side proxy routes in **`server.ts`** using `@google/genai` (`gemini-3.1-flash-lite` by default, or `GEMINI_MODEL`):
 
 1. **Handoff Summary Generation (`POST /api/handoff/generate`)**:
    - **Data Sent**: The `snapshot` object containing:

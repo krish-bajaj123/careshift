@@ -7,7 +7,8 @@ import { createTools, ExtraConstraintSchema, type ToolContext } from './tools';
 import { residentName } from './state';
 import { realStaff, restore, scrub } from './pseudonym';
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
+// flash-lite: fast and has a usable free-tier quota (3.8 Flash's free tier is 20 requests a day)
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
 export const MAX_TOOL_CALLS = 4;
 
 export const SYSTEM_PROMPT = `You are the re-planning assistant in CareShift, a shift tool for a long-term care home. A resident has just refused a care task. Your job is to re-plan the rest of the shift around that refusal and explain the plan to the care team.
