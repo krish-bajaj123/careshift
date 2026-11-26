@@ -37,7 +37,7 @@ export const AgentDecisionSchema = z.object({
 export type AgentDecision = z.infer<typeof AgentDecisionSchema>;
 
 export function createGeminiModel(apiKey: string, model = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL): BaseChatModel {
-  return new ChatGoogleGenerativeAI({ model, apiKey, temperature: 0, maxRetries: 1 });
+  return new ChatGoogleGenerativeAI({ model, apiKey, temperature: 0, maxRetries: 3 }); // Gemini free tier often returns 503 "high demand" for a moment; retry before falling back
 }
 
 export function buildAgent(model: BaseChatModel, ctx: ToolContext) {
